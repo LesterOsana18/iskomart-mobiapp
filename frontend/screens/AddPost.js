@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, Image, TouchableOpacity, ScrollView, Modal, FlatList, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
+import { data, addItem } from '../data/Data'; // Import the data object from Data.js
 
-const AddPost = ({ navigation }) => {
+const AddPost = ({ navigation, route }) => {
+  console.log('Route params:', route.params);
+  const { user_id } = route.params;
+
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -46,19 +50,25 @@ const AddPost = ({ navigation }) => {
       Alert.alert('Validation Error', 'Please fill in all required fields: Price, Description, and Category.');
       return;
     }
-
-    const newPost = {
-      id: Math.random().toString(),
-      user: 'Your Name',
-      date: new Date().toLocaleDateString(),
-      price: `₱${price}`, // Include the peso sign when saving the price
-      title: description,
-      image: imageUris[0], // This is where we use the first image from the array
-      likes: 0,
-      messages: 0,
-    };
-
-    navigation.navigate('Home', { newPost });
+  
+    // Assuming you have the user_id from the current session or user context
+    const user_id = 1; // Replace with the actual user ID, e.g., from your authentication system
+  
+    // Creating and passing the required parameters directly to addItem
+    addItem(
+      imageUris[0],   // First image URI
+      description,    // Using description as the item name
+      price,          // Item price
+      description,    // Item description
+      category,       // Item category
+      user_id         // Passing the user_id here
+    );
+  
+    // Log the new item to confirm it's added (this will be logged inside addItem)
+    console.log("Item published successfully!");
+  
+    // Navigate to the Home screen
+    navigation.navigate('Home', {user_id: user.user_id });
   };
 
   return (
