@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { data } from '../data/Data'; // Import the data object from Data.js
 
 const Home = ({ route, navigation }) => {
   const { user_id } = route.params || {};  // Get the userId passed from LogIn
 
   console.log("Home Screen user_id:", user_id);
 
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState(data);  // Set the initial posts to the data array
   const categories = ["Foods", "School Supplies", "Gadgets", "Others"];
 
   // This effect will run whenever newPost is added
@@ -17,10 +18,10 @@ const Home = ({ route, navigation }) => {
     }
   }, [route.params?.newPost]); // Ensure it listens for changes to newPost
 
-  const handleLike = (postId) => {
+  const handleLike = (item_id) => {
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
-        post.id === postId
+        post.item_id === item_id // Use item_id instead of postId
           ? {
               ...post,
               liked: !post.liked,
@@ -30,24 +31,29 @@ const Home = ({ route, navigation }) => {
       )
     );
   };
+  
 
-  const renderPost = ({ item }) => (
+  const renderItem = ({ item }) => (
     <View style={styles.postContainer}>
       <View style={styles.postHeader}>
-        <Image source={{ uri: item.image }} style={styles.postImage} />
+        {/* Use item_photo for the image */}
+        <Image source={{ uri: item.item_photo }} style={styles.postImage} />
         <View style={styles.postInfo}>
-          <Text style={styles.userName}>{item.user}</Text>
+          {/* Display the user's name using user_id */}
+          <Text style={styles.userName}>{`User ${item.user_id}`}</Text>
+          {/* Display the date of the item */}
           <Text style={styles.date}>{item.date}</Text>
         </View>
       </View>
       <View style={styles.postDetails}>
-        <Text style={styles.price}>{item.price}</Text>
-        <Text style={styles.title}>{item.title}</Text>
-
+        {/* Display item_price and item_name */}
+        <Text style={styles.price}>${item.item_price}</Text>
+        <Text style={styles.title}>{item.item_name}</Text>
+  
         <View style={styles.iconsContainer}>
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => handleLike(item.id)}
+            onPress={() => handleLike(item.item_id)} // Assuming you will use item_id for like functionality
           >
             <Icon
               name={item.liked ? 'heart' : 'heart-outline'}
@@ -64,6 +70,7 @@ const Home = ({ route, navigation }) => {
       </View>
     </View>
   );
+  
 
   return (
     <View style={styles.container}>
@@ -116,17 +123,17 @@ const Home = ({ route, navigation }) => {
       </View>
 
       <FlatList
-        data={posts} // The posts are being rendered here
-        renderItem={renderPost}
-        keyExtractor={(item) => item.id.toString()} // Ensure keyExtractor uses a unique key
+        data={data.items}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.item_id.toString()} // Updated to use item.item_id
         style={styles.postsList}
       />
 
       <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home', { user_id })}>
           <Icon name="home-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Search', { user_id })}>
           <Icon name="search-outline" size={25} color="#000" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('AddPost', { user_id })}>
@@ -135,7 +142,7 @@ const Home = ({ route, navigation }) => {
         <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id })}>
           <Icon name="mail" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile', { user_id })}>
           <Icon name="person-outline" size={25} color="#000" />
         </TouchableOpacity>
       </View>

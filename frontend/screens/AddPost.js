@@ -5,7 +5,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { data, addItem } from '../data/Data'; // Import the data object from Data.js
 
 const AddPost = ({ navigation, route }) => {
-  console.log('Route params:', route.params);
   const { user_id } = route.params;
 
   const [price, setPrice] = useState('');
@@ -51,9 +50,6 @@ const AddPost = ({ navigation, route }) => {
       return;
     }
   
-    // Assuming you have the user_id from the current session or user context
-    const user_id = 1; // Replace with the actual user ID, e.g., from your authentication system
-  
     // Creating and passing the required parameters directly to addItem
     addItem(
       imageUris[0],   // First image URI
@@ -68,7 +64,7 @@ const AddPost = ({ navigation, route }) => {
     console.log("Item published successfully!");
   
     // Navigate to the Home screen
-    navigation.navigate('Home', {user_id: user.user_id });
+    navigation.navigate('Home', { user_id });
   };
 
   return (
@@ -154,19 +150,19 @@ const AddPost = ({ navigation, route }) => {
       </View>
 
       <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home', { user_id })}>
           <Icon name="home-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Search', { user_id })}>
           <Icon name="search-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('AddPost')}>
+        <TouchableOpacity onPress={() => navigation.navigate('AddPost', { user_id })}>
           <Icon name="add-circle-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => { /* Message button action */ }}>
-          <Icon name="mail-outline" size={25} color="#000" />
+        <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id })}>
+          <Icon name="mail" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile', { user_id })}>
           <Icon name="person-outline" size={25} color="#000" />
         </TouchableOpacity>
       </View>

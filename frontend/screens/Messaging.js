@@ -4,9 +4,10 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { data, findUserById } from '../data/Data';  // Importing the data object
 
 const Messaging = ({ navigation, route }) => {
-  const { userId } = route.params; // Get user_id from navigation params
+  const { user_id } = route.params;  // Get the user_id passed from Home
 
-  
+  // Filter messages where sender_id matches the user_id from params
+  const filteredMessages = data.messages.filter(message => message.sender_id === user_id);
 
   // Group messages by receiver_id and get the latest message per receiver
   const latestMessages = Object.values(
@@ -54,19 +55,19 @@ const Messaging = ({ navigation, route }) => {
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home', { user_id })}>
           <Icon name="home-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Search', { user_id })}>
           <Icon name="search-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('AddPost')}>
+        <TouchableOpacity onPress={() => navigation.navigate('AddPost', { user_id })}>
           <Icon name="add-circle-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Messaging')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id })}>
           <Icon name="mail" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile', { user_id })}>
           <Icon name="person-outline" size={25} color="#000" />
         </TouchableOpacity>
       </View>

@@ -17,18 +17,22 @@ export const data = {
         password: '12345',
       },
     ],
+    // FK to users from user_id
     items: [
       {
         item_id: 1,
-        item_photo: 'https://via.placeholder.com/150',
-        item_name: 'Laptop',
-        item_price: 500,
-        item_description: 'Used Laptop',
-        item_category: 'Gadgets',
-        date: '2022-10-01',
         user_id: 1,
+        date: '2022-10-01',
+        item_price: 500,
+        item_name: 'Laptop',
+        item_photo: 'https://via.placeholder.com/150',
+        likes: 0,
+        messages: 0,
+        liked: false,
+        item_category: '2',
       }
     ],
+    // FK to users from sender_id
     messages: [
       {
         message_id: 1,
@@ -77,16 +81,6 @@ export const data = {
   
     const user = data.users.find(user => user.email === email);
     return user || null;
-  };
-  
-  // Function to find an item by item_id
-  export const findItemById = (item_id) => {
-    if (!Array.isArray(data.items)) {
-      data.items = [];
-    }
-  
-    const item = data.items.find(item => item.item_id === item_id);
-    return item || null;
   };
   
   // Function to add a message
