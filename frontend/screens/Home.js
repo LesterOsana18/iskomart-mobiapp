@@ -3,38 +3,19 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList } 
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const Home = ({ route, navigation }) => {
-  const [posts, setPosts] = useState([
-    {
-      id: '1',
-      user: 'Ariana Grande',
-      date: '12/05/2024',
-      price: 'P50.00',
-      title: 'Graham Bars',
-      image: 'https://via.placeholder.com/150',
-      likes: 20,
-      messages: 5,
-      liked: false, // Track if the post is liked
-    },
-    {
-      id: '2',
-      user: 'Sabrina Carpenter',
-      date: '12/05/2024',
-      price: 'P100.00',
-      title: 'Iced Coffee',
-      image: 'https://via.placeholder.com/150',
-      likes: 35,
-      messages: 3,
-      liked: false, // Track if the post is liked
-    },
-  ]);
+  const { user_id } = route.params || {};  // Get the userId passed from LogIn
 
+  console.log("Home Screen user_id:", user_id);
+
+  const [posts, setPosts] = useState([]);
+  const categories = ["Foods", "School Supplies", "Gadgets", "Others"];
+
+  // This effect will run whenever newPost is added
   useEffect(() => {
     if (route.params?.newPost) {
       setPosts((prevPosts) => [route.params.newPost, ...prevPosts]);
     }
-  }, [route.params?.newPost]);
-
-  const categories = ["Foods", "School Supplies", "Gadgets", "Others"];
+  }, [route.params?.newPost]); // Ensure it listens for changes to newPost
 
   const handleLike = (postId) => {
     setPosts((prevPosts) =>
@@ -43,7 +24,7 @@ const Home = ({ route, navigation }) => {
           ? {
               ...post,
               liked: !post.liked,
-              likes: post.liked ? post.likes - 1 : post.likes + 1, // Toggle like count
+              likes: post.liked ? post.likes - 1 : post.likes + 1,
             }
           : post
       )
@@ -63,16 +44,15 @@ const Home = ({ route, navigation }) => {
         <Text style={styles.price}>{item.price}</Text>
         <Text style={styles.title}>{item.title}</Text>
 
-        {/* Likes and Messages Section */}
         <View style={styles.iconsContainer}>
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => handleLike(item.id)} 
+            onPress={() => handleLike(item.id)}
           >
             <Icon
-              name={item.liked ? 'heart' : 'heart-outline'} 
+              name={item.liked ? 'heart' : 'heart-outline'}
               size={24}
-              color={item.liked ? '#F9C2D0' : '#000'} // Change color to pink if liked
+              color={item.liked ? '#F9C2D0' : '#000'}
             />
             <Text style={styles.iconText}>{item.likes}</Text>
           </TouchableOpacity>
@@ -87,12 +67,10 @@ const Home = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Image source={require('../assets/logo.png')} style={{ width: 50, height: 50 }} />
       </View>
 
-      {/* Search Bar */}
       <View style={styles.searchBarContainer}>
         <TextInput style={styles.searchBar} placeholder="Search" />
       </View>
@@ -103,7 +81,7 @@ const Home = ({ route, navigation }) => {
         <View style={styles.categoryRow}>
           <TouchableOpacity style={styles.categoryButton}>
             <Image
-              source={require('../assets/gadgetbutton/foodbutton.png')} // Image for food
+              source={require('../assets/gadgetbutton/foodbutton.png')}
               style={styles.categoryImage}
             />
             <Text style={styles.categoryText}>{categories[0]}</Text>
@@ -111,7 +89,7 @@ const Home = ({ route, navigation }) => {
 
           <TouchableOpacity style={styles.categoryButton}>
             <Image
-              source={require('../assets/gadgetbutton/suppliesbutton.png')} // Image for School Supplies
+              source={require('../assets/gadgetbutton/suppliesbutton.png')}
               style={styles.categoryImage}
             />
             <Text style={styles.categoryText}>{categories[1]}</Text>
@@ -121,7 +99,7 @@ const Home = ({ route, navigation }) => {
         <View style={styles.categoryRow}>
           <TouchableOpacity style={styles.categoryButton}>
             <Image
-              source={require('../assets/gadgetbutton/gadgetsbutton.png')} // Image for Gadgets
+              source={require('../assets/gadgetbutton/gadgetsbutton.png')}
               style={styles.categoryImage}
             />
             <Text style={styles.categoryText}>{categories[2]}</Text>
@@ -129,7 +107,7 @@ const Home = ({ route, navigation }) => {
 
           <TouchableOpacity style={styles.categoryButton}>
             <Image
-              source={require('../assets/gadgetbutton/otherbutton.png')} // Image for Others
+              source={require('../assets/gadgetbutton/otherbutton.png')}
               style={styles.categoryImage}
             />
             <Text style={styles.categoryText}>{categories[3]}</Text>
@@ -137,15 +115,13 @@ const Home = ({ route, navigation }) => {
         </View>
       </View>
 
-      {/* Posts List */}
       <FlatList
-        data={posts}
+        data={posts} // The posts are being rendered here
         renderItem={renderPost}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()} // Ensure keyExtractor uses a unique key
         style={styles.postsList}
       />
 
-      {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
           <Icon name="home-outline" size={25} color="#000" />
@@ -153,11 +129,11 @@ const Home = ({ route, navigation }) => {
         <TouchableOpacity onPress={() => navigation.navigate('Search')}>
           <Icon name="search-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('AddPost')}>
+        <TouchableOpacity onPress={() => navigation.navigate('AddPost', { user_id })}>
           <Icon name="add-circle-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => { /* Message button action */ }}>
-          <Icon name="mail-outline" size={25} color="#000" />
+        <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id })}>
+          <Icon name="mail" size={25} color="#000" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
           <Icon name="person-outline" size={25} color="#000" />

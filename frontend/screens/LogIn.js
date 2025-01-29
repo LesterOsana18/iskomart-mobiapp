@@ -1,8 +1,23 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Add this import
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
+import { findUserByUsername } from '../data/Data'; // Import the findUserByUsername function
 
-const LogIn = ({navigation}) => {
+const LogIn = ({ navigation }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = () => {
+    // Use the findUserByUsername function to find the user
+    const user = findUserByUsername(username);
+
+    if (user && user.password === password) {
+      // Successful login: Navigate to Home with user data
+      navigation.navigate('Home', { userName: user.username, user_id: user.user_id });
+    } else {
+      // Invalid credentials
+      Alert.alert('Error', 'Invalid username or password');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -11,20 +26,31 @@ const LogIn = ({navigation}) => {
 
       {/*pink background*/}
       <View style={styles.loginContainer}>
-      <Text style={styles.title}>Sign in</Text>
+        <Text style={styles.title}>Sign in</Text>
 
-      {/* Username Input */}
-      <Text style={styles.label}>Username</Text>
-      <TextInput style={styles.input} placeholder="Enter your username" />
+        {/* Username Input */}
+        <Text style={styles.label}>Username</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your username"
+          value={username}
+          onChangeText={setUsername}
+        />
 
-      {/* Password Input */}
-      <Text style={styles.label}>Password</Text>
-      <TextInput style={styles.input} placeholder="Enter your password" secureTextEntry />
+        {/* Password Input */}
+        <Text style={styles.label}>Password</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your password"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      {/* Sign In Button */}
-      <TouchableOpacity style={styles.signInButton} onPress={() => navigation.navigate('Home')}>
-        <Text style={styles.signInButtonText}>Sign in</Text>
-      </TouchableOpacity>
+        {/* Sign In Button */}
+        <TouchableOpacity style={styles.signInButton} onPress={handleLogin}>
+          <Text style={styles.signInButtonText}>Sign in</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -33,21 +59,21 @@ const LogIn = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FBF7EA",  
+    backgroundColor: "#FBF7EA",
     alignItems: 'center',
-    justifyContent: 'flex-end',  
+    justifyContent: 'flex-end',
   },
   logo: {
     width: 319,
     height: 280,
     position: 'absolute',
-    top: 100, 
+    top: 100,
   },
   loginContainer: {
     width: '100%',
-    backgroundColor: "#F9C2D0", 
+    backgroundColor: "#F9C2D0",
     padding: 20,
-    borderTopLeftRadius: 70,  
+    borderTopLeftRadius: 70,
     borderTopRightRadius: 70,
     alignItems: 'center',
     paddingBottom: 115,
@@ -82,7 +108,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 30,
     marginTop: 10,
-    borderWidth: 2, 
+    borderWidth: 2,
   },
   signInButtonText: {
     fontSize: 16,

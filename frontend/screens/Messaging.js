@@ -6,8 +6,7 @@ import { data, findUserById } from '../data/Data';  // Importing the data object
 const Messaging = ({ navigation, route }) => {
   const { userId } = route.params; // Get user_id from navigation params
 
-  // Filter messages where sender_id matches the user_id from params
-  const filteredMessages = data.messages.filter(message => message.sender_id === userId);
+  
 
   // Group messages by receiver_id and get the latest message per receiver
   const latestMessages = Object.values(
