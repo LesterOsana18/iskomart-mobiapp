@@ -1,72 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { data } from '../data/Data'; // Import the entire data object from Data.js
+import { data, findUserById } from '../data/Data'; // Import the entire data object
 
 const ChatPage = ({ navigation, route }) => {
-  const { userName, avatar, userId } = route.params; // Expecting userId from route params
+  const { user_id, receiver_id } = route.params;
+  console.log('ChatPage params:', { user_id, receiver_id });
+
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
+  const [userName, setUserName] = useState('');
+  const [avatar, setAvatar] = useState('');
 
   useEffect(() => {
-    // Load existing messages based on sender_id and reciever_id
+    console.log("ChatPage received params:", route.params);
+  
+    const { user_id, receiver_id } = route.params;
+  
+    // Filter messages for the specific user_id and receiver_id
     const userMessages = data.messages.filter(
-      (msg) => msg.sender_id === userId || msg.reciever_id === userId
+      (msg) =>
+        (msg.sender_id === user_id && msg.receiver_id === receiver_id) || 
+        (msg.sender_id === receiver_id && msg.receiver_id === user_id)
     );
-    setMessages(userMessages);
-  }, [userId]);
-
-  const analyzeEmotion = (input) => {
-    if (input.toLowerCase().includes('available')) {
-      return "Yes, it's still available.";
-    } else if (input.toLowerCase().includes('how much')) {
-      return "The price is P50.00.";
-    } else {
-      return "Can you repeat that?";
+  
+    console.log("Filtered messages for userId:", user_id, userMessages);
+    setMessages(userMessages); // Set the filtered messages
+    
+    // Find user info for the receiver
+    const receiver = findUserById(receiver_id);
+    if (receiver) {
+      setUserName(receiver.username);
+      setAvatar(receiver.avatar);
     }
-  };
+  }, [user_id, receiver_id]); // Ensure the effect runs when these values change
 
   const sendMessage = () => {
     if (inputText.trim()) {
       const newMessage = {
         message_id: Date.now().toString(),
-        sender_id: userId,
-        reciever_id: 2, // Assuming user with ID 2 is the bot or the recipient
+        sender_id: user_id,
+        receiver_id: receiver_id,
         text: inputText,
         time: new Date().toLocaleTimeString(),
-        avatar: avatar,
-      };
-      const botReply = {
-        message_id: (Date.now() + 1).toString(),
-        sender_id: 2, // Bot's ID
-        reciever_id: userId,
-        text: analyzeEmotion(inputText),
-        time: new Date().toLocaleTimeString(),
-        avatar: 'https://via.placeholder.com/50', // Bot's avatar
       };
 
-      // Update the state and the data object
-      setMessages([...messages, newMessage, botReply]);
-      data.messages.push(newMessage, botReply); // Update Data.js messages
+      // Update the state properly
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      data.messages.push(newMessage); // Persist to data.js
       setInputText('');
     }
   };
 
   const renderMessage = ({ item }) => (
-    <View style={[styles.messageBubble, item.sender_id === userId ? styles.myMessage : styles.otherMessage]}>
+    <View style={[styles.messageBubble, item.sender_id === user_id ? styles.myMessage : styles.otherMessage]}>
       <Text style={styles.messageText}>{item.text}</Text>
     </View>
   );
-
+  
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.arrowContainer}>
           <Icon name="arrow-back" size={25} color="#000" />
         </TouchableOpacity>
+
         <View style={styles.userInfo}>
-          <Image source={{ uri: avatar }} style={styles.avatar} />
-          <Text style={styles.userName}>{userName}</Text>
+          <Image source={{ uri: avatar || 'https://via.placeholder.com/40' }} style={styles.avatar} />
+          <Text style={styles.userName}>{userName || 'Unknown'}</Text>
         </View>
       </View>
 
@@ -102,10 +103,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     backgroundColor: '#F9C2D0',
-    paddingTop: 20, // Adds space at the top to adjust the arrow position
+    paddingTop: 20,
   },
   arrowContainer: {
-    marginRight: 10, // Adds some space between the arrow and the avatar
+    marginRight: 10,
   },
   userInfo: {
     flexDirection: 'row',
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginRight: 10, // Space between avatar and user name
+    marginRight: 10,
   },
   userName: {
     fontSize: 18,
@@ -158,6 +159,6 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     marginRight: 10,
   },
-});  
+});
 
 export default ChatPage;

@@ -7,6 +7,7 @@ export const data = {
         username: 'john_doe',
         email: 'john@gmail.com',
         password: 'password',
+        avatar: 'https://via.placeholder.com/50',
       },
       {
         user_id: 2,
@@ -15,6 +16,16 @@ export const data = {
         username: 'rei',
         email: 'rei',
         password: '12345',
+        avatar: 'https://via.placeholder.com/50',
+      },
+      {
+        user_id: 3,
+        first_name: 'lester',
+        last_name: 'Doe',
+        username: 'lester',
+        email: 'john@gmail.com',
+        password: 'password',
+        avatar: 'https://via.placeholder.com/50',
       },
     ],
     // FK to users from user_id
@@ -30,18 +41,54 @@ export const data = {
         messages: 0,
         liked: false,
         item_category: '2',
-      }
+      },
+      {
+        item_id: 2,
+        user_id: 1,
+        date: '2022-10-01',
+        item_price: 500,
+        item_name: 'Laptop',
+        item_photo: 'https://via.placeholder.com/150',
+        likes: 0,
+        messages: 0,
+        liked: false,
+        item_category: '2',
+      },
+      {
+        item_id: 3,
+        user_id: 3,
+        date: '2022-10-01',
+        item_price: 500,
+        item_name: 'Laptop',
+        item_photo: 'https://via.placeholder.com/150',
+        likes: 0,
+        messages: 0,
+        liked: false,
+        item_category: '2',
+      },
+      {
+        item_id: 4,
+        user_id: 2,
+        date: '2022-10-01',
+        item_price: 500,
+        item_name: 'Laptop',
+        item_photo: 'https://via.placeholder.com/150',
+        likes: 0,
+        messages: 0,
+        liked: false,
+        item_category: '2',
+      },
     ],
     // FK to users from sender_id
     messages: [
       {
-        message_id: 1,
-        receiver_id: 1,
-        text: 'filler',
-        sender_id: 2,
-        time: '1:30 PM',
-        avatar: 'https://via.placeholder.com/50',
-      }
+        message_id: 10,
+        sender_id: 1,
+        item_id: 4,
+        receiver_id: 2,
+        text: 'Hello',
+        time: '2022-10-01T10:00:00',
+      },  
     ]
   };
   
@@ -84,7 +131,7 @@ export const data = {
   };
   
   // Function to add a message
-  export const addMessage = (sender_id, receiver_id, text, time, avatar) => {
+  export const addMessage = (sender_id, item_id, text, time) => {
     if (!Array.isArray(data.messages)) {
       data.messages = [];
     }
@@ -92,10 +139,9 @@ export const data = {
     const newMessage = {
       message_id: data.messages.length + 1,
       sender_id: sender_id,
-      receiver_id: receiver_id, // Fixed the spelling of "receiver_id"
+      item_id: item_id,
       text: text,
       time: time,
-      avatar: avatar,
     };
   
     data.messages.push(newMessage);
@@ -111,29 +157,40 @@ export const data = {
     return user || null;
   };
   
-  // Function to add a new item
-  export const addItem = (item_photo, item_name, item_price, item_description, item_category, user_id) => {
-    if (!Array.isArray(data.items)) {
-      data.items = [];
+ // Function to add a new item
+export const addItem = (item_photo, item_name, item_price, item_description, item_category, user_id) => {
+  if (!Array.isArray(data.items)) {
+    data.items = [];
+  }
+
+  const newItem = {
+    item_id: Math.max(...data.items.map(item => item.item_id), 0) + 1, // Increment item_id based on the highest existing item_id
+    item_photo: item_photo,
+    item_name: item_name,
+    item_price: item_price,
+    item_description: item_description,
+    item_category: item_category,
+    date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
+    user_id: user_id, // Include the user_id in the item object
+    likes: 0, // Default likes to 0
+    liked: false, // Default liked to false
+  };
+
+  data.items.push(newItem);
+
+  // Log the new item created
+  console.log('New Item Created:', newItem);
+
+  // Log the current list of items
+  console.log('Current Items in the JSON:', data.items);
+};
+
+  // Toggle like function
+  export const toggleLike = (item_id) => {
+    const item = data.items.find(post => post.item_id === item_id);
+    if (item) {
+      item.liked = !item.liked;
+      item.likes = item.liked ? item.likes + 1 : item.likes - 1;
     }
-  
-    const newItem = {
-      item_id: Math.max(...data.items.map(item => item.item_id), 0) + 1, // Increment item_id based on the highest existing item_id
-      item_photo: item_photo,
-      item_name: item_name,
-      item_price: item_price,
-      item_description: item_description,
-      item_category: item_category,
-      date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
-      user_id: user_id, // Include the user_id in the item object
-    };
-  
-    data.items.push(newItem);
-  
-    // Log the new item created
-    console.log('New Item Created:', newItem);
-  
-    // Log the current list of items
-    console.log('Current Items in the JSON:', data.items);
   };
   

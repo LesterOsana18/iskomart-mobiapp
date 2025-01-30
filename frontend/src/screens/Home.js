@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { data } from '../data/Data'; // Import the data object from Data.js
+import { data, toggleLike, findUserById } from '../data/Data'; // Import the data object and toggleLike function
 
 const Home = ({ route, navigation }) => {
-  const { user_id } = route.params || {};  // Get the userId passed from LogIn
+  const { user_id } = route.params || {}; // Get the userId passed from LogIn
 
   console.log("Home Screen user_id:", user_id);
 
-  const [posts, setPosts] = useState(data);  // Set the initial posts to the data array
+  const [posts, setPosts] = useState(data.items); // Initialize with data.items
   const categories = ["Foods", "School Supplies", "Gadgets", "Others"];
 
   // This effect will run whenever newPost is added
@@ -16,44 +16,29 @@ const Home = ({ route, navigation }) => {
     if (route.params?.newPost) {
       setPosts((prevPosts) => [route.params.newPost, ...prevPosts]);
     }
-  }, [route.params?.newPost]); // Ensure it listens for changes to newPost
+  }, [route.params?.newPost]);
 
   const handleLike = (item_id) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.item_id === item_id // Use item_id instead of postId
-          ? {
-              ...post,
-              liked: !post.liked,
-              likes: post.liked ? post.likes - 1 : post.likes + 1,
-            }
-          : post
-      )
-    );
+    toggleLike(item_id); // Update the data
+    setPosts([...data.items]); // Update the UI with the modified data
   };
-  
 
   const renderItem = ({ item }) => (
     <View style={styles.postContainer}>
       <View style={styles.postHeader}>
-        {/* Use item_photo for the image */}
         <Image source={{ uri: item.item_photo }} style={styles.postImage} />
         <View style={styles.postInfo}>
-          {/* Display the user's name using user_id */}
           <Text style={styles.userName}>{`User ${item.user_id}`}</Text>
-          {/* Display the date of the item */}
           <Text style={styles.date}>{item.date}</Text>
         </View>
       </View>
       <View style={styles.postDetails}>
-        {/* Display item_price and item_name */}
         <Text style={styles.price}>${item.item_price}</Text>
         <Text style={styles.title}>{item.item_name}</Text>
-  
         <View style={styles.iconsContainer}>
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => handleLike(item.item_id)} // Assuming you will use item_id for like functionality
+            onPress={() => handleLike(item.item_id)}
           >
             <Icon
               name={item.liked ? 'heart' : 'heart-outline'}
@@ -62,15 +47,22 @@ const Home = ({ route, navigation }) => {
             />
             <Text style={styles.iconText}>{item.likes}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="chatbubble-outline" size={24} color="#000" />
-            <Text style={styles.iconText}>{item.messages}</Text>
+          <TouchableOpacity
+            onPress={() => {
+              const user = findUserById(item.user_id);
+              navigation.navigate('ChatPage', {
+                receiver_id: item.user_id, // Fix: Correctly pass item_id
+                user_id: user_id, // Current user
+              });
+            }}
+          >
+
+            <Icon name="chatbubble-outline" size={25} color="#000" />
           </TouchableOpacity>
         </View>
       </View>
     </View>
   );
-  
 
   return (
     <View style={styles.container}>
@@ -139,8 +131,8 @@ const Home = ({ route, navigation }) => {
         <TouchableOpacity onPress={() => navigation.navigate('AddPost', { user_id })}>
           <Icon name="add-circle-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id })}>
-          <Icon name="mail" size={25} color="#000" />
+        <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id: route.params.user_id })}>
+          <Icon name="mail-outline" size={25} color="#000" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Profile', { user_id })}>
           <Icon name="person-outline" size={25} color="#000" />
@@ -178,6 +170,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.25,
     shadowRadius: 3.5,
+  },
+  categoryImage: {
+    width: 30,
+    height: 30,
+    marginRight: 10,
   },
   categoryRow: {
     flexDirection: 'row',

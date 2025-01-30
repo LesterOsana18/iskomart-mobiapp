@@ -160,7 +160,7 @@ const AddPost = ({ navigation, route }) => {
           <Icon name="add-circle-outline" size={25} color="#000" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id })}>
-          <Icon name="mail" size={25} color="#000" />
+        <Icon name="mail-outline" size={25} color="#000" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Profile', { user_id })}>
           <Icon name="person-outline" size={25} color="#000" />
