@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import { findUserByUsername } from '../data/Data'; // Import the findUserByUsername function
+import axios from 'axios'
 
 const LogIn = ({ navigation }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  function handleLogin(event) {
+    event.preventDefault();
+    axios.post('')
+  }
+  /* 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -17,7 +25,8 @@ const LogIn = ({ navigation }) => {
       // Invalid credentials
       Alert.alert('Error', 'Invalid username or password');
     }
-  };
+  }; 
+  */
 
   return (
     <View style={styles.container}>
