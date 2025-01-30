@@ -5,33 +5,63 @@ import { data, findUserById } from '../data/Data';  // Importing the data object
 
 const Messaging = ({ navigation, route }) => {
   const { user_id } = route.params;  // Get the user_id passed from Home
+  console.log("Home Screen user_id:", user_id);
 
-  // Filter messages where sender_id matches the user_id from params
-  const filteredMessages = data.messages.filter(message => message.sender_id === user_id);
-
-  // Group messages by receiver_id and get the latest message per receiver
+  // Filter messages by user_id, ensuring we get messages where the user is either sender or receiver
+  const filteredMessages = data.messages.filter(
+    message => message.sender_id === user_id || message.receiver_id === user_id
+  );
+  
+  // Group messages by receiver_id and get the latest message for each receiver
   const latestMessages = Object.values(
     filteredMessages.reduce((acc, message) => {
-      acc[message.reciever_id] = message; // Always overwrite to keep the latest message
+      const partnerId = message.sender_id === user_id ? message.receiver_id : message.sender_id;
+
+      // If no message exists for the receiver, or the current message is later, replace it
+      if (!acc[partnerId] || new Date(acc[partnerId].time) < new Date(message.time)) {
+        acc[partnerId] = message;
+      }
+      
       return acc;
     }, {})
   );
+  
 
+  // Render the latest message for each receiver
   const renderMessage = ({ item }) => {
-    const receiver = findUserById(item.reciever_id); // Find the receiver using reciever_id
+    // Identify if the current user_id is the sender or receiver
+    const isSender = item.sender_id === user_id;
+  
+    // Find the other user (chat partner)
+    const chatPartnerId = isSender ? item.receiver_id : item.sender_id;
+    const chatPartner = findUserById(chatPartnerId);
+  
     return (
       <TouchableOpacity 
+        key={item.id}  // Ensure each message has a unique key based on the message ID
         style={styles.messageContainer} 
-        onPress={() => navigation.navigate('ChatPage', { userName: receiver ? receiver.username : 'Unknown', avatar: item.avatar })}>
-        <Image source={{ uri: item.avatar }} style={styles.avatar} />
+        onPress={() => {
+          navigation.navigate('ChatPage', { 
+            userName: chatPartner ? chatPartner.username : 'Unknown',
+            item_id: item.item_id,
+            user_id: user_id, // Current user
+            receiver_id: chatPartnerId, // Pass the receiver_id
+          });
+        }}
+      >
+        <Image 
+          source={{ uri: chatPartner ? chatPartner.avatar : 'https://via.placeholder.com/50' }} 
+          style={styles.avatar} 
+        />
         <View style={styles.messageInfo}>
-          <Text style={styles.userName}>{receiver ? receiver.username : 'Unknown'}</Text> 
+          <Text style={styles.userName}>{chatPartner ? chatPartner.username : 'Unknown'}</Text>
           <Text style={styles.lastMessage}>{item.text}</Text>
         </View>
         <Text style={styles.time}>{item.time}</Text>
       </TouchableOpacity>
     );
   };
+  
 
   return (
     <View style={styles.container}>
@@ -47,9 +77,9 @@ const Messaging = ({ navigation, route }) => {
 
       {/* Messages List */}
       <FlatList
-        data={latestMessages}  // Display only the latest messages per receiver
+        data={latestMessages}  // Use only the latest message for each receiver
         renderItem={renderMessage}
-        keyExtractor={(item) => item.message_id.toString()}  
+        keyExtractor={(item) => item.message_id.toString()}
         style={styles.messagesList}
       />
 
@@ -65,7 +95,7 @@ const Messaging = ({ navigation, route }) => {
           <Icon name="add-circle-outline" size={25} color="#000" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id })}>
-          <Icon name="mail" size={25} color="#000" />
+          <Icon name="mail-outline" size={25} color="#000" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Profile', { user_id })}>
           <Icon name="person-outline" size={25} color="#000" />

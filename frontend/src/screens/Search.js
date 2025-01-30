@@ -2,7 +2,8 @@ import React from 'react';
 import { StyleSheet, Text, View, TextInput, Image, TouchableOpacity, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons'; 
 
-const Search = ({ navigation }) => {
+const Search = ({ navigation, route }) => {
+  const { user_id } = route.params;
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -20,21 +21,21 @@ const Search = ({ navigation }) => {
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home', { user_id })}>
           <Icon name="home-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Search')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Search', { user_id })}>
           <Icon name="search-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('AddPost')}>
+        <TouchableOpacity onPress={() => navigation.navigate('AddPost', { user_id })}>
           <Icon name="add-circle-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => { /* Message button action */ }}>
+        <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id })}>
           <Icon name="mail-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile', { user_id })}>
           <Icon name="person-outline" size={25} color="#000" />
-        </TouchableOpacity>
+        </TouchableOpacity>    
       </View>
     </View>
   );

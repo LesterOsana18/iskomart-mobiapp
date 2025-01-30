@@ -1,16 +1,16 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import GetStarted from './screens/GetStarted'; //Import GetStartedPage
-import LogIn from './screens/LogIn'; //Import LogInPage
-import Register from './screens/Register'; //Import RegisterPage
-import Home from './screens/Home'; // Import HomePage
-import Search from './screens/Search'; //Import SearchPage
-import AddPost from './screens/AddPost'; //Import AddPost
-import Profile from './screens/Profile'; //Import ProfilePage
-import Messaging from './screens/Messaging'; //Import MessagingPage
-import ChatPage from './screens/ChatPage'; // Import ChatPage
-import EditProfile from './screens/EditProfile';
+import GetStarted from './src/screens/GetStarted'; //Import GetStartedPage
+import LogIn from './src/screens/LogIn'; //Import LogInPage
+import Register from './src/screens/Register'; //Import RegisterPage
+import Home from './src/screens/Home'; // Import HomePage
+import Search from './src/screens/Search'; //Import SearchPage
+import AddPost from './src/screens/AddPost'; //Import AddPost
+import Profile from './src/screens/Profile'; //Import ProfilePage
+import Messaging from './src/screens/Messaging'; //Import MessagingPage
+import ChatPage from './src/screens/ChatPage'; // Import ChatPage
+import EditProfile from './src/screens/EditProfile';
 
 const Stack = createNativeStackNavigator();
 
