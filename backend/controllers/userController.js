@@ -50,11 +50,11 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid username or password' });
     }
 
-    // Return success message without token
+    // Return success message with user_id
     res.status(200).json({
       message: 'Login successful',
       userData: {
-        id: result[0].id,
+        user_id: result[0].user_id, // Include user_id in the response
         username: result[0].username,
       },
     });
