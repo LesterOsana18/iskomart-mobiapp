@@ -1,55 +1,67 @@
-const bcrypt = require('bcrypt');
-const db = require('../db');
+// controllers/userController.js
+const bcrypt = require('bcryptjs');
+const db = require('../config/db'); // Import the db connection
 
+// Register user function
 const registerUser = async (req, res) => {
-  const { firstName, lastName, username, email, password } = req.body;
+  const { first_name, last_name, username, email, password } = req.body;
 
-  // Check if the username already exists
-  const existingUserQuery = 'SELECT * FROM users WHERE username = ?';
-  db.execute(existingUserQuery, [username], async (err, results) => {
-    if (err) return res.status(500).json({ message: 'Database error', error: err });
-
-    if (results.length > 0) {
-      return res.status(400).json({ message: 'Username already exists' });
-    }
-
+  try {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert the new user into the database
-    const insertUserQuery = 'INSERT INTO users (firstName, lastName, username, email, password) VALUES (?, ?, ?, ?, ?)';
-    db.execute(insertUserQuery, [firstName, lastName, username, email, hashedPassword], (err, results) => {
-      if (err) return res.status(500).json({ message: 'Database error', error: err });
+    // Check if username or email already exists
+    const [rows] = await db.query('SELECT * FROM users WHERE username = ? OR email = ?', [username, email]);
 
-      res.status(201).json({ message: 'User registered successfully' });
-    });
-  });
+    if (rows.length > 0) {
+      return res.status(400).json({ message: 'Username or email already exists' });
+    }
+
+    // Insert the user into the database
+    await db.query(
+      'INSERT INTO users (first_name, last_name, username, email, password) VALUES (?, ?, ?, ?, ?)',
+      [first_name, last_name, username, email, hashedPassword]
+    );
+
+    // Return success message
+    res.status(201).json({ message: 'User registered successfully' });
+  } catch (err) {
+    console.error('Error registering user:', err);
+    res.status(500).json({ message: 'Error registering user', error: err.message });
+  }
 };
 
-const loginUser = (req, res) => {
+// Login user function
+const loginUser = async (req, res) => {
   const { username, password } = req.body;
 
-  const query = 'SELECT * FROM users WHERE username = ?';
-  db.execute(query, [username], (err, results) => {
-    if (err) return res.status(500).json({ message: 'Database error', error: err });
+  try {
+    // Query the database to find the user
+    const [result] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
 
-    if (results.length > 0) {
-      bcrypt.compare(password, results[0].password, (err, isMatch) => {
-        if (err) return res.status(500).json({ message: 'Error comparing passwords', error: err });
-
-        if (isMatch) {
-          return res.status(200).json({
-            message: 'Login successful',
-            userData: results[0], // Return the first user data if needed
-          });
-        } else {
-          return res.status(401).json({ message: 'Invalid credentials' });
-        }
-      });
-    } else {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    if (result.length === 0) {
+      return res.status(401).json({ message: 'Invalid username or password' });
     }
-  });
+
+    // Compare the provided password with the stored hashed password
+    const isMatch = await bcrypt.compare(password, result[0].password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid username or password' });
+    }
+
+    // Return success message without token
+    res.status(200).json({
+      message: 'Login successful',
+      userData: {
+        id: result[0].id,
+        username: result[0].username,
+      },
+    });
+  } catch (err) {
+    console.error('Error logging in user:', err);
+    res.status(500).json({ message: 'Error logging in user', error: err.message });
+  }
 };
 
-module.exports = { loginUser, registerUser };
+module.exports = { registerUser, loginUser };

@@ -18,12 +18,5 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-db.connect((err) => {
-    if (err) {
-      console.error('Error connecting to the database:', err);
-      process.exit(1);
-    }
-    console.log('Connected to the MySQL database');
-  });
-
+// Export the pool for querying the database in your other files
 module.exports = pool;

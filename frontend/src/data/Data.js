@@ -1,32 +1,6 @@
 export const data = {
     users: [
-      {
-        user_id: 1,
-        first_name: 'John',
-        last_name: 'Doe',
-        username: 'john_doe',
-        email: 'john@gmail.com',
-        password: 'password',
-        avatar: 'https://via.placeholder.com/50',
-      },
-      {
-        user_id: 2,
-        first_name: 'Jane',
-        last_name: 'Doe',
-        username: 'rei',
-        email: 'rei',
-        password: '12345',
-        avatar: 'https://via.placeholder.com/50',
-      },
-      {
-        user_id: 3,
-        first_name: 'lester',
-        last_name: 'Doe',
-        username: 'lester',
-        email: 'john@gmail.com',
-        password: 'password',
-        avatar: 'https://via.placeholder.com/50',
-      },
+      
     ],
     
     items: [// FK to users from sender_id
