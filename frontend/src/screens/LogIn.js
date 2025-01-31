@@ -59,7 +59,7 @@ const LogIn = ({ navigation }) => {
         {/* Sign In Link */}
         <Text style={styles.signInText}>
           Don't have an account? 
-          <Text style={styles.signInLink} onPress={() => navigation.navigate('Register')}>Sign Up</Text>
+          <Text style={styles.signInLink} onPress={() => navigation.navigate('Register')}> Sign Up</Text>
         </Text>
 
       </View>
