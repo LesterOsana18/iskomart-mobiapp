@@ -33,7 +33,7 @@ const Home = ({ route, navigation }) => {
         </View>
       </View>
       <View style={styles.postDetails}>
-        <Text style={styles.price}>${item.item_price}</Text>
+        <Text style={styles.price}>₱{item.item_price}</Text>
         <Text style={styles.title}>{item.item_name}</Text>
         <View style={styles.iconsContainer}>
           <TouchableOpacity
