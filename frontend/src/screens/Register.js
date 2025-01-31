@@ -1,8 +1,7 @@
-// REGISTER SCREEN
-
 import React, { useState } from 'react';
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import axios from 'axios';
+import { URL } from '../config'; // Assuming URL is defined in your config file
 
 // Function for email validation
 const isValidEmail = (email) => {
@@ -18,14 +17,6 @@ const Register = ({ navigation }) => {
   const [password, setPassword] = useState('');
 
   const handleRegister = async () => {
-    // Check if username already exists (should be checked on the backend)
-    const existingUser = await axios.post('http://localhost:5000/check-username', { username });
-
-    if (existingUser.data.exists) {
-      Alert.alert('Error', 'Username already exists!');
-      return;
-    }
-
     // Ensure the fields are filled
     if (!firstName || !lastName || !username || !email || !password) {
       Alert.alert('Error', 'All fields are required!');
@@ -38,9 +29,9 @@ const Register = ({ navigation }) => {
       return;
     }
 
-    // Register the new user
     try {
-      const response = await axios.post('http://localhost:5000/register', {
+      // Register the new user by sending a POST request to the backend
+      const response = await axios.post(`${URL}/auth/register`, {
         firstName,
         lastName,
         username,
@@ -60,8 +51,8 @@ const Register = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/*logo*/}
-      <Image source={require("../assets/logo.png")} style={styles.logo}/>
+      {/* Logo */}
+      <Image source={require("../assets/logo.png")} style={styles.logo} />
 
       {/* Pink Section */}
       <View style={styles.registerContainer}>

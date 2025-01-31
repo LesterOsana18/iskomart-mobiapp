@@ -28,8 +28,8 @@ export const data = {
         avatar: 'https://via.placeholder.com/50',
       },
     ],
-    // FK to users from user_id
-    items: [
+    
+    items: [// FK to users from sender_id
       {
         item_id: 1,
         user_id: 1,
@@ -79,8 +79,8 @@ export const data = {
         item_category: '2',
       },
     ],
-    // FK to users from sender_id
-    messages: [
+    
+    messages: [ //FK user using sender_id and receiver_id, FK item using item_id
       {
         message_id: 10,
         sender_id: 1,

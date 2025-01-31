@@ -7,6 +7,8 @@ require('dotenv').config();
 
 // Create an Express app
 const app = express();
+
+// Middleware to parse the request body as JSON
 app.use(bodyParser.json());
 app.use(cors()); // Enable CORS for all origins
 
@@ -17,14 +19,6 @@ db = mysql.createConnection({
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error('Error connecting to the database:', err);
-    process.exit(1); // Exit the process if there is a connection error
-  }
-  console.log('Connected to the MySQL database');
 });
 
 // POST route to handle login requests
@@ -52,6 +46,13 @@ app.post('/login', (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
   });
+});
+
+// Use Routes
+app.use('/api/auth', authRoutes);
+
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Server is working!' });
 });
 
 // Set up the server to listen on a specified port

@@ -34,21 +34,20 @@ const loginUser = (req, res) => {
     if (err) return res.status(500).json({ message: 'Database error', error: err });
 
     if (results.length > 0) {
-      // Compare the password with the stored hashed password
       bcrypt.compare(password, results[0].password, (err, isMatch) => {
         if (err) return res.status(500).json({ message: 'Error comparing passwords', error: err });
 
         if (isMatch) {
-          // Passwords match
-          res.status(200).json({ message: 'Login successful' });
+          return res.status(200).json({
+            message: 'Login successful',
+            userData: results[0], // Return the first user data if needed
+          });
         } else {
-          // Passwords do not match
-          res.status(401).json({ message: 'Invalid credentials' });
+          return res.status(401).json({ message: 'Invalid credentials' });
         }
       });
     } else {
-      // No user found with the provided username
-      res.status(404).json({ message: 'User not found' });
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
   });
 };

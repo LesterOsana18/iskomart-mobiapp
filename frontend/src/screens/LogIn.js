@@ -1,22 +1,16 @@
-// LOGIN SCREEN
-
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import axios from 'axios';
+import { URL } from '../config';
 
 const LogIn = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
-
+  const handleLogin = async () => {
     try {
-      // Make a POST request to the backend login endpoint
-      const response = await axios.post('http://localhost:5000/login', {
-        username,
-        password,
-      });
+      // Login request to the backend login endpoint
+      const response = await axios.post(`${URL}/auth/login`, { username, password });
 
       if (response.status === 200) {
         Alert.alert('Success', 'Login successful');
@@ -34,14 +28,13 @@ const LogIn = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/*logo*/}
+      {/* Logo */}
       <Image source={require("../assets/logo.png")} style={styles.logo} />
 
-      {/*pink background*/}
+      {/* Login Form */}
       <View style={styles.loginContainer}>
         <Text style={styles.title}>Sign in</Text>
 
-        {/* Username Input */}
         <Text style={styles.label}>Username</Text>
         <TextInput
           style={styles.input}
@@ -50,7 +43,6 @@ const LogIn = ({ navigation }) => {
           onChangeText={setUsername}
         />
 
-        {/* Password Input */}
         <Text style={styles.label}>Password</Text>
         <TextInput
           style={styles.input}
@@ -60,10 +52,16 @@ const LogIn = ({ navigation }) => {
           onChangeText={setPassword}
         />
 
-        {/* Sign In Button */}
         <TouchableOpacity style={styles.signInButton} onPress={handleLogin}>
           <Text style={styles.signInButtonText}>Sign in</Text>
         </TouchableOpacity>
+
+        {/* Sign In Link */}
+        <Text style={styles.signInText}>
+          Already have an account? 
+          <Text style={styles.signInLink} onPress={() => navigation.navigate('Register')}> Register</Text>
+        </Text>
+
       </View>
     </View>
   );
@@ -127,6 +125,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: 'white',
+  },
+  signInText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: 'white',
+  },
+  signInLink: {
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
 });
 
