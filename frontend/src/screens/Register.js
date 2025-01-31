@@ -1,6 +1,14 @@
+// REGISTER SCREEN
+
 import React, { useState } from 'react';
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { data, addUser } from '../data/Data'; // Import data and addUser from your JSON
+import axios from 'axios';
+
+// Function for email validation
+const isValidEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
 
 const Register = ({ navigation }) => {
   const [lastName, setLastName] = useState('');
@@ -9,11 +17,11 @@ const Register = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleRegister = () => {
-    // Check if username already exists in the data object
-    const existingUser = data.users.find(user => user.username === username);
+  const handleRegister = async () => {
+    // Check if username already exists (should be checked on the backend)
+    const existingUser = await axios.post('http://localhost:5000/check-username', { username });
 
-    if (existingUser) {
+    if (existingUser.data.exists) {
       Alert.alert('Error', 'Username already exists!');
       return;
     }
@@ -24,15 +32,30 @@ const Register = ({ navigation }) => {
       return;
     }
 
-    // Add the new user using the addUser function
-    addUser(firstName, lastName, username, email, password);
+    // Email validation
+    if (!isValidEmail(email)) {
+      Alert.alert('Error', 'Please enter a valid email!');
+      return;
+    }
 
-    // Log the updated users array to the console
-    console.log("Updated users object:", data.users);
+    // Register the new user
+    try {
+      const response = await axios.post('http://localhost:5000/register', {
+        firstName,
+        lastName,
+        username,
+        email,
+        password,
+      });
 
-    // Navigate to the LogIn screen after successful registration
-    Alert.alert('Success', 'Registration successful!');
-    navigation.navigate('LogIn');
+      if (response.status === 201) {
+        Alert.alert('Success', 'Registration successful!');
+        navigation.navigate('LogIn');
+      }
+    } catch (err) {
+      console.error('Error during registration:', err);
+      Alert.alert('Error', 'Something went wrong during registration');
+    }
   };
 
   return (
@@ -98,7 +121,7 @@ const Register = ({ navigation }) => {
         </Text>
 
         {/* Register Button */}
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegister} >
+        <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
           <Text style={styles.registerButtonText}>Register</Text>
         </TouchableOpacity>
       </View>

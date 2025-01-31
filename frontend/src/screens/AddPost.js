@@ -1,3 +1,5 @@
+// ADD POST SCREEN
+
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, Image, TouchableOpacity, ScrollView, Modal, FlatList, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';

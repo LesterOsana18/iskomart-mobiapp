@@ -1,32 +1,36 @@
+// LOGIN SCREEN
+
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
-import { findUserByUsername } from '../data/Data'; // Import the findUserByUsername function
-import axios from 'axios'
+import axios from 'axios';
 
 const LogIn = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  function handleLogin(event) {
+
+  const handleLogin = async (event) => {
     event.preventDefault();
-    axios.post('')
-  }
-  /* 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // Use the findUserByUsername function to find the user
-    const user = findUserByUsername(username);
+    try {
+      // Make a POST request to the backend login endpoint
+      const response = await axios.post('http://localhost:5000/login', {
+        username,
+        password,
+      });
 
-    if (user && user.password === password) {
-      // Successful login: Navigate to Home with user data
-      navigation.navigate('Home', { userName: user.username, user_id: user.user_id });
-    } else {
-      // Invalid credentials
-      Alert.alert('Error', 'Invalid username or password');
+      if (response.status === 200) {
+        Alert.alert('Success', 'Login successful');
+        navigation.navigate('Home', { user: response.data.userData });
+      }
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        Alert.alert('Error', 'Invalid username or password');
+      } else {
+        console.error('Error during login:', err);
+        Alert.alert('Error', 'Something went wrong. Please try again later');
+      }
     }
-  }; 
-  */
+  };
 
   return (
     <View style={styles.container}>
