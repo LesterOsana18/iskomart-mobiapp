@@ -10,42 +10,46 @@ const isValidEmail = (email) => {
 };
 
 const Register = ({ navigation }) => {
-  const [lastName, setLastName] = useState('');
-  const [firstName, setFirstName] = useState('');
+  const [last_name, setLastName] = useState('');
+  const [first_name, setFirstName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleRegister = async () => {
     // Ensure the fields are filled
-    if (!firstName || !lastName || !username || !email || !password) {
+    if (!first_name || !last_name || !username || !email || !password) {
       Alert.alert('Error', 'All fields are required!');
       return;
     }
-
+  
     // Email validation
     if (!isValidEmail(email)) {
       Alert.alert('Error', 'Please enter a valid email!');
       return;
     }
-
+  
     try {
-      // Register the new user by sending a POST request to the backend
-      const response = await axios.post(`${URL}/auth/register`, {
-        firstName,
-        lastName,
+      console.log('Sending registration data:', { first_name, last_name, username, email, password });
+      const response = await axios.post(`${URL}/register`, {
+        first_name,
+        last_name,
         username,
         email,
         password,
       });
-
+  
+      console.log('Response from server:', response); // Log the full response from the server
+  
       if (response.status === 201) {
         Alert.alert('Success', 'Registration successful!');
         navigation.navigate('LogIn');
+      } else {
+        Alert.alert('Error', response.data.message || 'Something went wrong during registration');
       }
     } catch (err) {
-      console.error('Error during registration:', err);
-      Alert.alert('Error', 'Something went wrong during registration');
+      console.error('Error during registration:', err.response ? err.response.data : err);
+      Alert.alert('Error', err.response?.data?.message || 'Something went wrong during registration');
     }
   };
 
@@ -65,14 +69,14 @@ const Register = ({ navigation }) => {
             style={[styles.input, styles.nameInput]}
             placeholder="Last name"
             placeholderTextColor="#A9A9A9"
-            value={lastName}
+            value={last_name}
             onChangeText={setLastName}
           />
           <TextInput
             style={[styles.input, styles.nameInput]}
             placeholder="First name"
             placeholderTextColor="#A9A9A9"
-            value={firstName}
+            value={first_name}
             onChangeText={setFirstName}
           />
         </View>

@@ -8,21 +8,26 @@ const LogIn = ({ navigation }) => {
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
+    if (!username || !password) {
+      Alert.alert('Error', 'Username and password are required!');
+      return;
+    }
+  
     try {
-      // Login request to the backend login endpoint
-      const response = await axios.post(`${URL}/auth/login`, { username, password });
-
+      console.log('Sending login data:', { username, password });
+      const response = await axios.post(`${URL}/login`, { username, password });
+  
+      console.log('Response from server:', response); // Log the full response from the server
+  
       if (response.status === 200) {
         Alert.alert('Success', 'Login successful');
         navigation.navigate('Home', { user: response.data.userData });
+      } else {
+        Alert.alert('Error', response.data.message || 'Something went wrong during login');
       }
     } catch (err) {
-      if (err.response && err.response.status === 401) {
-        Alert.alert('Error', 'Invalid username or password');
-      } else {
-        console.error('Error during login:', err);
-        Alert.alert('Error', 'Something went wrong. Please try again later');
-      }
+      console.error('Error during login:', err.response ? err.response.data : err);
+      Alert.alert('Error', err.response?.data?.message || 'Something went wrong. Please try again later');
     }
   };
 
