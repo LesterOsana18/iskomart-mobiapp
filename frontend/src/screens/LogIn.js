@@ -20,8 +20,9 @@ const LogIn = ({ navigation }) => {
       console.log('Response from server:', response); // Log the full response from the server
   
       if (response.status === 200) {
+        console.log('User ID:', response.data.userData.user_id); // Log the user_id
         Alert.alert('Success', 'Login successful');
-        navigation.navigate('Home', { user: response.data.userData });
+        navigation.navigate('Home', { user_id: response.data.userData.user_id });
       } else {
         Alert.alert('Error', response.data.message || 'Something went wrong during login');
       }

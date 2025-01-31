@@ -6,12 +6,14 @@ import { data, toggleLike, findUserById } from '../data/Data'; // Import the dat
 const Home = ({ route, navigation }) => {
   const { user_id } = route.params || {}; // Get the userId passed from LogIn
 
-  console.log("Home Screen user_id:", user_id);
+  useEffect(() => {
+    console.log("Home Screen route.params:", route.params); // Log the entire route.params
+    console.log("Home Screen user_id:", user_id);
+  }, [route.params]);
 
-  const [posts, setPosts] = useState(data.items); // Initialize with data.items
+  const [posts, setPosts] = useState(data.items);
   const categories = ["Foods", "School Supplies", "Gadgets", "Others"];
 
-  // This effect will run whenever newPost is added
   useEffect(() => {
     if (route.params?.newPost) {
       setPosts((prevPosts) => [route.params.newPost, ...prevPosts]);
@@ -19,8 +21,8 @@ const Home = ({ route, navigation }) => {
   }, [route.params?.newPost]);
 
   const handleLike = (item_id) => {
-    toggleLike(item_id); // Update the data
-    setPosts([...data.items]); // Update the UI with the modified data
+    toggleLike(item_id);
+    setPosts([...data.items]);
   };
 
   const renderItem = ({ item }) => (
@@ -51,12 +53,11 @@ const Home = ({ route, navigation }) => {
             onPress={() => {
               const user = findUserById(item.user_id);
               navigation.navigate('ChatPage', {
-                receiver_id: item.user_id, // Fix: Correctly pass item_id
-                user_id: user_id, // Current user
+                receiver_id: item.user_id,
+                user_id: user_id,
               });
             }}
           >
-
             <Icon name="chatbubble-outline" size={25} color="#000" />
           </TouchableOpacity>
         </View>
@@ -117,7 +118,7 @@ const Home = ({ route, navigation }) => {
       <FlatList
         data={data.items}
         renderItem={renderItem}
-        keyExtractor={(item) => item.item_id.toString()} // Updated to use item.item_id
+        keyExtractor={(item) => item.item_id.toString()}
         style={styles.postsList}
       />
 
@@ -131,7 +132,7 @@ const Home = ({ route, navigation }) => {
         <TouchableOpacity onPress={() => navigation.navigate('AddPost', { user_id })}>
           <Icon name="add-circle-outline" size={25} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id: route.params.user_id })}>
+        <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id })}>
           <Icon name="mail-outline" size={25} color="#000" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Profile', { user_id })}>
@@ -209,13 +210,13 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderWidth: 2,
     borderColor: '#000',
-    overflow: 'hidden', // Prevent content from overflowing
-    marginBottom: 20, // Add space at the bottom
+    overflow: 'hidden',
+    marginBottom: 20,
   },
   postHeader: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    alignItems: 'center', // Ensure proper alignment of elements
+    alignItems: 'center',
   },
   postImage: {
     height: 200,
@@ -224,8 +225,8 @@ const styles = StyleSheet.create({
   },
   postInfo: {
     flex: 1,
-    justifyContent: 'flex-start', 
-    marginLeft: 10, 
+    justifyContent: 'flex-start',
+    marginLeft: 10,
   },
   userName: {
     fontWeight: 'bold',
@@ -250,7 +251,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     marginTop: 10,
-    flexWrap: 'wrap', 
+    flexWrap: 'wrap',
   },
   iconButton: {
     flexDirection: 'row',
