@@ -49,28 +49,33 @@ const ChatPage = ({ navigation, route }) => {
   
   // Send a message
   const sendMessage = async () => {
-    if (inputText.trim()) {
-      const newMessage = {
-        sender_id: user_id,
-        receiver_id: receiver_id,
-        text: inputText,
-        time: new Date().toISOString(), // Store time in ISO format
-      };
-
-      try {
-        const response = await axios.post(`${URL}/text/messages`, newMessage);
-        if (response.status === 201) {
-          // Add the new message to the bottom of the list
-          setMessages((prevMessages) => [...prevMessages, response.data]);
-          setInputText('');
-        } else {
-          console.error('Error sending message');
-        }
-      } catch (error) {
-        console.error('Error sending message:', error);
+    if (!inputText.trim()) {
+      setError("Message cannot be empty");
+      return;
+    }
+  
+    const newMessage = {
+      sender_id: user_id,
+      receiver_id: receiver_id,
+      text: inputText,
+      time: new Date().toISOString(), // Store time in ISO format
+    };
+  
+    try {
+      const response = await axios.post(`${URL}/text/messages`, newMessage);
+      if (response.status === 201) {
+        // Add the new message to the bottom of the list
+        setMessages((prevMessages) => [...prevMessages, response.data]);
+        setInputText('');
+        setError(null); // Reset error after a successful send
+      } else {
+        console.error('Error sending message');
       }
+    } catch (error) {
+      console.error('Error sending message:', error);
     }
   };
+  
 
   // Render a single message
   const renderMessage = ({ item }) => {
