@@ -2,7 +2,7 @@ const pool = require('../config/db');
 
 const getAllItems = async () => {
     const [rows] = await pool.execute(
-      "SELECT items.item_id, items.item_name, items.item_price, items.likes, items.item_photo, items.user_id AS item_user_id, users.username FROM items JOIN users ON items.user_id = users.user_id ORDER BY items.date DESC"
+      "SELECT items.item_id, items.item_name, items.item_price, items.likes, items.item_photo, items.user_id AS item_user_id, items.item_category, users.username FROM items JOIN users ON items.user_id = users.user_id ORDER BY items.date DESC"
     );
     console.log('Fetched Items:', rows); // Log the fetched data
     return rows;

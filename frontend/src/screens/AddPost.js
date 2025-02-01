@@ -16,7 +16,7 @@ const AddPost = ({ navigation, route }) => {
 
   const categories = [
     { id: '1', label: 'Foods' },
-    { id: '2', label: 'School Supplies' },
+    { id: '2', label: 'Supplies' },
     { id: '3', label: 'Gadgets' },
     { id: '4', label: 'Others' },
   ];

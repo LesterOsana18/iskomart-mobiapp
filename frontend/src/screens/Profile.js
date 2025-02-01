@@ -41,10 +41,18 @@ const Profile = ({ route, navigation }) => {
         fetchPosts();
     }, [user_id]);  // Run on user_id change
 
+    const imageMap = {
+        1: require('../assets/items/1.jpg'),
+        2: require('../assets/items/2.jpg'),
+        3: require('../assets/items/3.jpg'),
+        4: require('../assets/items/4.jpg'),
+        5: require('../assets/items/5.jpg'),
+      };
+
     const renderItem = ({ item }) => (
         <View style={styles.postContainer}>
             <View style={styles.postHeader}>
-                <Image source={{ uri: item.item_photo }} style={styles.postImage} />
+                <Image source={imageMap[item.item_id]} style={styles.postImage} />
                 <View style={styles.postInfo}>
                     <Text style={styles.userName}>{`User ${item.user_id}`}</Text>
                     <Text style={styles.date}>{item.date}</Text>
@@ -81,6 +89,8 @@ const Profile = ({ route, navigation }) => {
         </View>
     );
 
+    
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -92,7 +102,7 @@ const Profile = ({ route, navigation }) => {
 
             {user ? (
                 <View style={styles.profileInfoContainer}>
-                    <Image source={{ uri: user.profile_picture || 'https://via.placeholder.com/100' }} style={styles.profileImage} />
+                    <Image source={ require('../assets/profilepic.png')} style={styles.profileImage} />
                     <View style={styles.profileInfo}>
                         <Text style={styles.userName}>{user.first_name || 'User'} {user.last_name || ''}</Text>
                         <Text style={styles.university}>{user.email || 'No email provided'}</Text>

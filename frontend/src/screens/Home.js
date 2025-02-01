@@ -6,11 +6,11 @@ import { URL } from '../config';
 
 const Home = ({ route, navigation }) => {
   const { user_id } = route.params || {}; // Get the userId passed from LogIn
-  console.log('user_id:', user_id); // Verify the value
-  // Get the userId passed from LogIn
 
   const [posts, setPosts] = useState([]);
-  const categories = ["Foods", "School Supplies", "Gadgets", "Others"];
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const categories = ["Foods", "Supplies", "Gadgets", "Others"];
 
   // Fetch posts on component mount
   useEffect(() => {
@@ -18,6 +18,7 @@ const Home = ({ route, navigation }) => {
       try {
         const response = await axios.get(`${URL}/api/get_items`); // Fetch all items
         setPosts(response.data); // Assume response contains all items
+        setFilteredPosts(response.data); // Initialize filteredPosts with all posts
       } catch (err) {
         console.error('Error fetching posts:', err);
         if (err.response) {
@@ -34,6 +35,16 @@ const Home = ({ route, navigation }) => {
     };
     fetchPosts();
   }, []); // The effect will run once when the component is mounted
+
+  // Handle category selection and filter posts
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    if (category) {
+      setFilteredPosts(posts.filter(post => post.item_category === category));
+    } else {
+      setFilteredPosts(posts); // Show all posts if no category selected
+    }
+  };
 
   // Handle like functionality
   const handleLike = async (item_id, liked) => {
@@ -54,6 +65,13 @@ const Home = ({ route, navigation }) => {
               : post
           )
         );
+        setFilteredPosts((prevPosts) =>
+          prevPosts.map(post =>
+            post.item_id === item_id
+              ? { ...post, liked: !post.liked, likes: post.liked ? post.likes - 1 : post.likes + 1 }
+              : post
+          )
+        );
       } else {
         Alert.alert('Error', 'Failed to update like status');
       }
@@ -63,66 +81,79 @@ const Home = ({ route, navigation }) => {
     }
   };
 
-  
+  const imageMap = {
+    1: require('../assets/items/1.jpg'),
+    2: require('../assets/items/2.jpg'),
+    3: require('../assets/items/3.jpg'),
+    4: require('../assets/items/4.jpg'),
+    5: require('../assets/items/5.jpg'),
+  };
+
+  // Category Images
+  const categoryMap = {
+    Foods: require('../assets/gadgetbutton/Foods.png'),
+    Gadgets: require('../assets/gadgetbutton/Gadgets.png'),
+    Supplies: require('../assets/gadgetbutton/Supplies.png'),
+    Others: require('../assets/gadgetbutton/Other.png'),
+  };
 
   // Render a single post item
-const renderItem = ({ item }) => (
-  <View style={styles.postContainer}>
-    <View style={styles.postHeader}>
-      <Image source={{ uri: item.item_photo }} style={styles.postImage} />
-      <View style={styles.postInfo}>
-        <Text style={styles.userName}>{`User ${item.item_user_id}`}</Text>
-        <Text style={styles.date}>{item.date}</Text>
+  const renderItem = ({ item }) => (
+    <View style={styles.postContainer}>
+      <View style={styles.postHeader}>
+        <Image source={imageMap[item.item_id]} style={styles.postImage} />
+        <View style={styles.postInfo}>
+          <Text style={styles.userName}>{`User ${item.item_user_id}`}</Text>
+          <Text style={styles.date}>{item.date}</Text>
+        </View>
+      </View>
+      <View style={styles.postDetails}>
+        <Text style={styles.price}>₱{item.item_price}</Text>
+        <Text style={styles.title}>{item.item_name}</Text>
+        <View style={styles.iconsContainer}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => handleLike(item.item_id, item.liked)}
+          >
+            <Icon
+              name={item.liked ? 'heart' : 'heart-outline'}
+              size={25}
+              color={item.liked ? '#F9C2D0' : '#000'}
+            />
+            <Text style={styles.iconText}>{item.likes}</Text>
+          </TouchableOpacity>
+
+          {/* Message Button */}
+          <TouchableOpacity
+            onPress={() => {
+              if (!user_id || !item.item_user_id) {
+                Alert.alert('Error', 'Invalid user ID');
+                return;
+              }
+
+              // Debugging log to verify the ids being passed
+              console.log('Current user ID:', user_id);
+              console.log('Receiver ID:', item.item_user_id);
+
+              if (user_id === item.item_user_id) {
+                Alert.alert('Error', 'You cannot chat with yourself!');
+                return;
+              }
+
+              navigation.navigate('ChatPage', {
+                user_id: user_id, // Current user
+                receiver_id: item.item_user_id, // User who posted the item
+                userName: `${item.username}`, // Username for the chat header
+                avatar: item.avatar, // Avatar for the chat page
+              });
+            }}
+          >
+            <Icon name="chatbubble-outline" size={24} color="#000" marginBottom="3" marginLeft="10"/>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
-    <View style={styles.postDetails}>
-      <Text style={styles.price}>₱{item.item_price}</Text>
-      <Text style={styles.title}>{item.item_name}</Text>
-      <View style={styles.iconsContainer}>
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => handleLike(item.item_id, item.liked)}
-        >
-          <Icon
-            name={item.liked ? 'heart' : 'heart-outline'}
-            size={25}
-            color={item.liked ? '#F9C2D0' : '#000'}
-          />
-          <Text style={styles.iconText}>{item.likes}</Text>
-        </TouchableOpacity>
-
-        {/* Message Button */}
-        <TouchableOpacity
-          onPress={() => {
-            if (!user_id || !item.item_user_id) {
-              Alert.alert('Error', 'Invalid user ID');
-              return;
-            }
-
-            // Debugging log to verify the ids being passed
-            console.log('Current user ID:', user_id);
-            console.log('Receiver ID:', item.item_user_id);
-
-            if (user_id === item.item_user_id) {
-              Alert.alert('Error', 'You cannot chat with yourself!');
-              return;
-            }
-
-            navigation.navigate('ChatPage', {
-              user_id: user_id, // Current user
-              receiver_id: item.item_user_id, // User who posted the item
-              userName: `${item.username}`, // Username for the chat header
-              avatar: item.avatar, // Avatar for the chat page
-            });
-          }}
-        >
-          <Icon name="chatbubble-outline" size={24} color="#000" marginBottom="3" marginLeft="10"/>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-);
-
+  );
 
   return (
     <View style={styles.container}>
@@ -136,46 +167,23 @@ const renderItem = ({ item }) => (
 
       <Image source={require('../assets/7.png')} />
 
-      <View style={styles.categoriesContainer}>
-        <View style={styles.categoryRow}>
-          <TouchableOpacity style={styles.categoryButton}>
-            <Image
-              source={require('../assets/gadgetbutton/foodbutton.png')}
-              style={styles.categoryImage}
-            />
-            <Text style={styles.categoryText}>{categories[0]}</Text>
+      {/* Corrected Category Buttons */}
+      <View style={styles.categoryContainer}>
+        {categories.map((category, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.categoryButton}
+            onPress={() => handleCategorySelect(category)}
+          >
+            <Image source={categoryMap[category]} style={styles.categoryImage} />
+            <Text style={styles.categoryText}>{category}</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.categoryButton}>
-            <Image
-              source={require('../assets/gadgetbutton/suppliesbutton.png')}
-              style={styles.categoryImage}
-            />
-            <Text style={styles.categoryText}>{categories[1]}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.categoryRow}>
-          <TouchableOpacity style={styles.categoryButton}>
-            <Image
-              source={require('../assets/gadgetbutton/gadgetsbutton.png')}
-              style={styles.categoryImage}
-            />
-            <Text style={styles.categoryText}>{categories[2]}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.categoryButton}>
-            <Image
-              source={require('../assets/gadgetbutton/otherbutton.png')}
-              style={styles.categoryImage}
-            />
-            <Text style={styles.categoryText}>{categories[3]}</Text>
-          </TouchableOpacity>
-        </View>
+        ))}
       </View>
 
+      {/* Pass `filteredPosts` instead of `posts` */}
       <FlatList
-        data={posts} // Fetch the posts from API
+        data={filteredPosts} 
         renderItem={renderItem}
         keyExtractor={(item) => item.item_id.toString()}
         style={styles.postsList}
@@ -246,7 +254,7 @@ const styles = StyleSheet.create({
     padding: 10,
     height: '50',
     borderRadius: 100,
-    width: '45%',
+    width: '48%',
     borderWidth: 2,
     borderColor: '#000',
     flexDirection: 'row',
@@ -313,6 +321,13 @@ const styles = StyleSheet.create({
     position: 'absolute',  
     bottom: 1,  
     right: 1,   
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginHorizontal: 20,
+    gap: 10,
   },
   iconButton: {
     flexDirection: 'row',
