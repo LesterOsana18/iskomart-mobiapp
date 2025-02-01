@@ -2,14 +2,16 @@ import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const EditProfile = ({navigation}) => {
-  return (
-  <View style={styles.container}>
+const EditProfile = ({navigation, route}) => {
+const { user_id } = route.params || {}; // Get the user_id passed from LogIn
+
+return (
+<View style={styles.container}>
     {/* Header */}
     <View style={styles.header}>
         <Image source={require('../assets/logo.png')} style={{ width: 50, height: 50 }} />
     </View>
-    <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+    <TouchableOpacity onPress={() => navigation.navigate('Profile', { user_id })}>
         <Text style={styles.backText}>Back</Text>
     </TouchableOpacity>
 
@@ -60,7 +62,7 @@ const EditProfile = ({navigation}) => {
             <Text style={styles.saveButtonText}>Save</Text>
     </TouchableOpacity>
     </View>
-  );
+);
 };
 
 const styles = StyleSheet.create({
