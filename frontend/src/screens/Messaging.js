@@ -12,21 +12,27 @@ const Messaging = ({ navigation, route }) => {
   const [users, setUsers] = useState({}); // Store user data for chat partners
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [noMessages, setNoMessages] = useState(false); // New state for empty messages
 
   // Fetch messages from the server
   useEffect(() => {
     const fetchMessages = async () => {
       try {
         const response = await axios.get(`${URL}/text/messages/${user_id}`);
-        setMessages(response.data);
-        setLoading(false);
+  
+        if (response.data.length === 0) {
+          setNoMessages(true);  // No messages found
+        } else {
+          setMessages(response.data);
+          setNoMessages(false); // Messages exist, hide the noMessages state
+        }
       } catch (error) {
-        console.error('Error fetching messages:', error);
-        setError('Failed to fetch messages. Please try again.');
+        setNoMessages(true); // Consider empty if there's an error
+      } finally {
         setLoading(false);
       }
     };
-
+  
     fetchMessages();
   }, [user_id]);
 
@@ -132,13 +138,20 @@ const Messaging = ({ navigation, route }) => {
       <View style={styles.searchBarContainer}>
         <TextInput style={styles.searchBar} placeholder="Search Messages" />
       </View>
-
-      <FlatList
+      
+      {loading && <Text>Loading messages...</Text>}
+      {!loading && noMessages ? (
+        <View style={styles.centeredContainer}>
+          <Text style={styles.noMessagesText}>There are no messages to display.</Text>
+        </View>
+      ) : (
+        <FlatList
         data={latestMessages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.message_id.toString()}
         style={styles.messagesList}
-      />
+        />
+      )}
 
       <View style={styles.bottomNav}>
         <TouchableOpacity onPress={() => navigation.navigate('Home', { user_id })}>
@@ -232,6 +245,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 20,
     color: 'red',
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 200,
+  },
+  noMessagesText: {
+    fontSize: 16,
+    color: 'gray',
+    textAlign: 'center',
   },
   bottomNav: {
     flexDirection: 'row',
