@@ -18,7 +18,9 @@ const ChatPage = ({ navigation, route }) => {
         const response = await axios.get(`${URL}/text/messages/${user_id}`, {
           params: { receiver_id },
         });
-        setMessages(response.data);
+        // Sort messages by time before setting them in state
+        const sortedMessages = response.data.sort((a, b) => new Date(a.time) - new Date(b.time));
+        setMessages(sortedMessages);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching messages:', error);
@@ -37,12 +39,13 @@ const ChatPage = ({ navigation, route }) => {
         sender_id: user_id,
         receiver_id: receiver_id,
         text: inputText,
-        time: new Date().toISOString().replace('T', ' ').slice(0, 19), // Format time for MySQL
+        time: new Date().toISOString(), // Store time in ISO format
       };
 
       try {
         const response = await axios.post(`${URL}/text/messages`, newMessage);
         if (response.status === 201) {
+          // Add the new message to the bottom of the list
           setMessages((prevMessages) => [...prevMessages, response.data]);
           setInputText('');
         } else {
@@ -55,17 +58,25 @@ const ChatPage = ({ navigation, route }) => {
   };
 
   // Render a single message
-  const renderMessage = ({ item }) => (
-    <View
-      style={[
-        styles.messageBubble,
-        item.sender_id === user_id ? styles.myMessage : styles.otherMessage,
-      ]}
-    >
-      <Text style={styles.messageText}>{item.text}</Text>
-      <Text style={styles.time}>{item.time}</Text>
-    </View>
-  );
+  const renderMessage = ({ item }) => {
+    // Parse the time field as a Date object
+    const messageTime = new Date(item.time).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    return (
+      <View
+        style={[
+          styles.messageBubble,
+          item.sender_id === user_id ? styles.myMessage : styles.otherMessage,
+        ]}
+      >
+        <Text style={styles.messageText}>{item.text}</Text>
+        <Text style={styles.messageTime}>{messageTime}</Text>
+      </View>
+    );
+  };
 
   // Render loading or error states
   if (loading) {
@@ -105,6 +116,7 @@ const ChatPage = ({ navigation, route }) => {
         renderItem={renderMessage}
         keyExtractor={(item) => item.message_id.toString()}
         contentContainerStyle={styles.messagesList}
+      
       />
 
       <View style={styles.inputContainer}>

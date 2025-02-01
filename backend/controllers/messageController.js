@@ -2,7 +2,6 @@ const pool = require('../config/db'); // Import the MySQL pool
 
 // Send a message
 const sendMessage = async (req, res) => {
-    console.log('Request Body:', req.body); // Debugging
 
     const { sender_id, receiver_id, text } = req.body;
 
@@ -41,16 +40,11 @@ const sendMessage = async (req, res) => {
 
         // Format time in MySQL-compatible format
         const time = new Date().toISOString().replace('T', ' ').slice(0, 19);
-        console.log('Executing Query:', query, [sender_id, receiver_id, text, time]); // Debugging
 
         const [rows] = await pool.execute(query, [sender_id, receiver_id, text, time]);
         const newMessage = { message_id: rows.insertId, sender_id, receiver_id, text, time };
         res.status(201).json(newMessage);
     } catch (err) {
-        console.error('Error sending message:', err.message);
-        console.error('Error stack trace:', err.stack);
-        console.error('SQL Error Code:', err.code); // MySQL error code
-        console.error('SQL Error SQLState:', err.sqlState); // MySQL SQL state
         res.status(500).send('Error sending message');
     }
 };
@@ -70,19 +64,16 @@ const getMessages = async (req, res) => {
         JOIN users AS sender ON messages.sender_id = sender.user_id
         JOIN users AS receiver ON messages.receiver_id = receiver.user_id
         WHERE sender_id = ? OR receiver_id = ?
-        ORDER BY time DESC
+        ORDER BY time ASC
     `;
 
     try {
-        console.log('Executing Query:', query, [user_id, user_id]); // Debugging
         const [rows] = await pool.execute(query, [user_id, user_id]);
         if (rows.length === 0) {
             return res.status(404).send('No messages found');
         }
         res.status(200).json(rows);
-    } catch (err) {
-        console.error('Error fetching messages:', err.message);
-        console.error('Error stack trace:', err.stack);
+    } catch (err) {;
         res.status(500).send('Error fetching messages');
     }
 };
@@ -98,17 +89,12 @@ const getUserById = async (req, res) => {
 
     const query = 'SELECT username FROM users WHERE user_id = ?'; // Removed avatar
     try {
-        console.log('Executing Query:', query, [user_id]); // Debugging
         const [rows] = await pool.execute(query, [user_id]);
         if (rows.length === 0) {
             return res.status(404).send('User not found');
         }
         res.status(200).json(rows[0]);
     } catch (err) {
-        console.error('Error fetching user:', err.message);
-        console.error('Error stack trace:', err.stack);
-        console.error('SQL Error Code:', err.code);
-        console.error('SQL Error SQLState:', err.sqlState);
         res.status(500).send({ message: 'Error fetching user', error: err.message });
     }
 };
