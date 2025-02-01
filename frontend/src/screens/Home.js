@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
-import { URL } from '../config'; // Import URL from config
+import { URL } from '../config';
 
 const Home = ({ route, navigation }) => {
   const { user_id } = route.params || {}; // Get the userId passed from LogIn

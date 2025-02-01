@@ -1,74 +1,101 @@
-// CHAT PAGE SCREEN
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, Image, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { data, findUserById } from '../data/Data'; // Import the entire data object
+import axios from 'axios';
+import { URL } from '../config';
 
 const ChatPage = ({ navigation, route }) => {
-  const { user_id, receiver_id } = route.params;
-  console.log('ChatPage params:', { user_id, receiver_id });
-
+  const { user_id, receiver_id, userName, avatar } = route.params;
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
-  const [userName, setUserName] = useState('');
-  const [avatar, setAvatar] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Fetch messages from the server
   useEffect(() => {
-    console.log("ChatPage received params:", route.params);
-  
-    const { user_id, receiver_id } = route.params;
-  
-    // Filter messages for the specific user_id and receiver_id
-    const userMessages = data.messages.filter(
-      (msg) =>
-        (msg.sender_id === user_id && msg.receiver_id === receiver_id) || 
-        (msg.sender_id === receiver_id && msg.receiver_id === user_id)
-    );
-  
-    console.log("Filtered messages for userId:", user_id, userMessages);
-    setMessages(userMessages); // Set the filtered messages
-    
-    // Find user info for the receiver
-    const receiver = findUserById(receiver_id);
-    if (receiver) {
-      setUserName(receiver.username);
-      setAvatar(receiver.avatar);
-    }
-  }, [user_id, receiver_id]); // Ensure the effect runs when these values change
+    const fetchMessages = async () => {
+      try {
+        const response = await axios.get(`${URL}/text/messages/${user_id}`, {
+          params: { receiver_id },
+        });
+        setMessages(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+        setError('Failed to fetch messages. Please try again.');
+        setLoading(false);
+      }
+    };
 
-  const sendMessage = () => {
+    fetchMessages();
+  }, [user_id, receiver_id]);
+
+  // Send a message
+  const sendMessage = async () => {
     if (inputText.trim()) {
       const newMessage = {
-        message_id: Date.now().toString(),
         sender_id: user_id,
         receiver_id: receiver_id,
         text: inputText,
-        time: new Date().toLocaleTimeString(),
+        time: new Date().toISOString().replace('T', ' ').slice(0, 19), // Format time for MySQL
       };
 
-      // Update the state properly
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-      data.messages.push(newMessage); // Persist to data.js
-      setInputText('');
+      try {
+        const response = await axios.post(`${URL}/text/messages`, newMessage);
+        if (response.status === 201) {
+          setMessages((prevMessages) => [...prevMessages, response.data]);
+          setInputText('');
+        } else {
+          console.error('Error sending message');
+        }
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
   };
 
+  // Render a single message
   const renderMessage = ({ item }) => (
-    <View style={[styles.messageBubble, item.sender_id === user_id ? styles.myMessage : styles.otherMessage]}>
+    <View
+      style={[
+        styles.messageBubble,
+        item.sender_id === user_id ? styles.myMessage : styles.otherMessage,
+      ]}
+    >
       <Text style={styles.messageText}>{item.text}</Text>
+      <Text style={styles.time}>{item.time}</Text>
     </View>
   );
-  
+
+  // Render loading or error states
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.arrowContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back" size={25} color="#000" />
         </TouchableOpacity>
 
         <View style={styles.userInfo}>
-          <Image source={{ uri: avatar || 'https://via.placeholder.com/40' }} style={styles.avatar} />
+          <Image
+            source={{ uri: avatar || 'https://via.placeholder.com/40' }}
+            style={styles.avatar}
+          />
           <Text style={styles.userName}>{userName || 'Unknown'}</Text>
         </View>
       </View>
@@ -76,8 +103,8 @@ const ChatPage = ({ navigation, route }) => {
       <FlatList
         data={messages}
         renderItem={renderMessage}
-        keyExtractor={(item) => item.message_id}
-        style={styles.messagesList}
+        keyExtractor={(item) => item.message_id.toString()}
+        contentContainerStyle={styles.messagesList}
       />
 
       <View style={styles.inputContainer}>
@@ -87,7 +114,7 @@ const ChatPage = ({ navigation, route }) => {
           value={inputText}
           onChangeText={setInputText}
         />
-        <TouchableOpacity onPress={sendMessage}>
+        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
           <Icon name="send" size={25} color="#007AFF" />
         </TouchableOpacity>
       </View>
@@ -103,11 +130,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
     backgroundColor: '#F9C2D0',
-    paddingTop: 20,
+    padding: 10,
+    borderBottomWidth: 2,
+    borderColor: '#000',
   },
-  arrowContainer: {
+  backButton: {
     marginRight: 10,
   },
   userInfo: {
@@ -125,8 +153,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   messagesList: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 10,
+    paddingTop: 10,
   },
   messageBubble: {
     padding: 10,
@@ -145,21 +174,41 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: 16,
   },
+  messageTime: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 5,
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
     backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderColor: '#ddd',
+    borderTopWidth: 2,
+    borderColor: '#000',
   },
   input: {
     flex: 1,
     padding: 10,
-    borderWidth: 1,
+    borderWidth: 2,
     borderRadius: 20,
-    borderColor: '#ccc',
+    borderColor: '#000',
     marginRight: 10,
+  },
+  sendButton: {
+    padding: 10,
+  },
+  loadingText: {
+    textAlign: 'center',
+    fontSize: 16,
+    marginTop: 20,
+    color: '#aaa',
+  },
+  errorText: {
+    textAlign: 'center',
+    fontSize: 16,
+    marginTop: 20,
+    color: 'red',
   },
 });
 

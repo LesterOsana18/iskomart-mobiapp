@@ -1,59 +1,116 @@
-const Message = require('../models/Message'); // Import your Message model
-const User = require('../models/User'); // Import your User model
-
-// Get messages for a user
-const getMessages = async (req, res) => {
-  try {
-    const { user_id } = req.params;
-    const messages = await Message.find({
-      $or: [
-        { sender_id: user_id },
-        { receiver_id: user_id }
-      ]
-    }).sort({ time: -1 });
-
-    res.json(messages);
-  } catch (err) {
-    console.error('Error fetching messages', err);
-    res.status(500).send('Error fetching messages');
-  }
-};
-
-// Get user by ID
-const getUserById = async (req, res) => {
-  try {
-    const { user_id } = req.params;
-    const user = await User.findById(user_id);
-    
-    if (!user) {
-      return res.status(404).send('User not found');
-    }
-
-    res.json(user);
-  } catch (err) {
-    console.error('Error fetching user', err);
-    res.status(500).send('Error fetching user');
-  }
-};
+const pool = require('../config/db'); // Import the MySQL pool
 
 // Send a message
 const sendMessage = async (req, res) => {
-  const { sender_id, receiver_id, text, item_id } = req.body;
+    console.log('Request Body:', req.body); // Debugging
 
-  const newMessage = new Message({
-    sender_id,
-    receiver_id,
-    text,
-    item_id
-  });
+    const { sender_id, receiver_id, text } = req.body;
 
-  try {
-    await newMessage.save();
-    res.status(201).json(newMessage);
-  } catch (err) {
-    console.error('Error sending message', err);
-    res.status(500).send('Error sending message');
-  }
+    // Input validation
+    if (!sender_id || !receiver_id || !text) {
+        return res.status(400).send('Missing required fields');
+    }
+
+    if (isNaN(sender_id) || isNaN(receiver_id)) {
+        return res.status(400).send('Invalid sender_id or receiver_id');
+    }
+
+    if (typeof text !== 'string' || text.trim() === '') {
+        return res.status(400).send('Invalid message text');
+    }
+
+    // Check if sender and receiver exist
+    const checkUserExists = async (user_id) => {
+        const query = 'SELECT user_id FROM users WHERE user_id = ?';
+        const [rows] = await pool.execute(query, [user_id]);
+        return rows.length > 0;
+    };
+
+    try {
+        const senderExists = await checkUserExists(sender_id);
+        const receiverExists = await checkUserExists(receiver_id);
+
+        if (!senderExists || !receiverExists) {
+            return res.status(404).send('Sender or receiver not found');
+        }
+
+        const query = `
+            INSERT INTO messages (sender_id, receiver_id, text, time) 
+            VALUES (?, ?, ?, ?)
+        `;
+
+        // Format time in MySQL-compatible format
+        const time = new Date().toISOString().replace('T', ' ').slice(0, 19);
+        console.log('Executing Query:', query, [sender_id, receiver_id, text, time]); // Debugging
+
+        const [rows] = await pool.execute(query, [sender_id, receiver_id, text, time]);
+        const newMessage = { message_id: rows.insertId, sender_id, receiver_id, text, time };
+        res.status(201).json(newMessage);
+    } catch (err) {
+        console.error('Error sending message:', err.message);
+        console.error('Error stack trace:', err.stack);
+        console.error('SQL Error Code:', err.code); // MySQL error code
+        console.error('SQL Error SQLState:', err.sqlState); // MySQL SQL state
+        res.status(500).send('Error sending message');
+    }
 };
 
-module.exports = { getMessages, getUserById, sendMessage };
+// Get messages for a specific user
+const getMessages = async (req, res) => {
+    const { user_id } = req.params;
+
+    // Input validation
+    if (!user_id || isNaN(user_id)) {
+        return res.status(400).send('Invalid user_id');
+    }
+
+    const query = `
+        SELECT messages.*, sender.username AS sender_name, receiver.username AS receiver_name
+        FROM messages
+        JOIN users AS sender ON messages.sender_id = sender.user_id
+        JOIN users AS receiver ON messages.receiver_id = receiver.user_id
+        WHERE sender_id = ? OR receiver_id = ?
+        ORDER BY time DESC
+    `;
+
+    try {
+        console.log('Executing Query:', query, [user_id, user_id]); // Debugging
+        const [rows] = await pool.execute(query, [user_id, user_id]);
+        if (rows.length === 0) {
+            return res.status(404).send('No messages found');
+        }
+        res.status(200).json(rows);
+    } catch (err) {
+        console.error('Error fetching messages:', err.message);
+        console.error('Error stack trace:', err.stack);
+        res.status(500).send('Error fetching messages');
+    }
+};
+
+// Get user by ID (avatar removed)
+const getUserById = async (req, res) => {
+    const { user_id } = req.params;
+
+    // Input validation
+    if (!user_id || isNaN(user_id)) {
+        return res.status(400).send('Invalid user_id');
+    }
+
+    const query = 'SELECT username FROM users WHERE user_id = ?'; // Removed avatar
+    try {
+        console.log('Executing Query:', query, [user_id]); // Debugging
+        const [rows] = await pool.execute(query, [user_id]);
+        if (rows.length === 0) {
+            return res.status(404).send('User not found');
+        }
+        res.status(200).json(rows[0]);
+    } catch (err) {
+        console.error('Error fetching user:', err.message);
+        console.error('Error stack trace:', err.stack);
+        console.error('SQL Error Code:', err.code);
+        console.error('SQL Error SQLState:', err.sqlState);
+        res.status(500).send({ message: 'Error fetching user', error: err.message });
+    }
+};
+
+module.exports = { sendMessage, getMessages, getUserById };
