@@ -1,80 +1,123 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { data, findUserById } from '../data/Data'; // Import the data object from Data.js
+import axios from 'axios';
+import { URL } from '../config'; // Import URL from config
 
-const Profile = ({ navigation, route }) => {
-    const { user_id } = route.params;
+const Profile = ({ route, navigation }) => {
+    const { user_id } = route.params || {}; // Get the userId passed from LogIn
+    const [user, setUser] = useState(null);  // State to store user details
+    const [posts, setPosts] = useState([]);
 
-    // Find the user based on the user_id
-    const user = findUserById(user_id);
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (user_id) {
+                try {
+                    const response = await axios.get(`${URL}/users/${user_id}`);
+                    console.log('User Data Response:', response.data); // Debugging
+                    setUser(response.data.userInfo); // Access the nested userInfo object
+                } catch (err) {
+                    console.error('Error fetching user data:', err);
+                    Alert.alert('Error', 'Failed to fetch user data.');
+                }
+            } else {
+                Alert.alert('Error', 'User ID is not available');
+            }
+        };
 
-    // Filter items to display only those with the same user_id
-    const userItems = data.items.filter(item => item.user_id === user_id);
+        const fetchPosts = async () => {
+            if (user_id) {
+                try {
+                    const response = await axios.get(`${URL}/api/items/${user_id}`);
+                    setPosts(response.data); 
+                } catch (err) {
+                    console.error('Error fetching posts:', err);
+                    Alert.alert('Error', 'Failed to fetch posts.');
+                }
+            }
+        };
 
-    // If the user is not found, display a message
-    if (!user) {
-        return (
-            <View style={styles.container}>
-                <Text>User not found</Text>
-            </View>
-        );
-    }
+        fetchUserData();
+        fetchPosts();
+    }, [user_id]);  // Run on user_id change
 
-    // Render a single item
     const renderItem = ({ item }) => (
-        <View style={styles.itemContainer}>
-            <Image source={{ uri: item.item_photo }} style={styles.itemImage} />
-            <View style={styles.iconsContainer}>
-                <TouchableOpacity>
-                    <Icon name="heart-outline" size={24} color="#000" style={styles.icon} />
-                </TouchableOpacity>
-                <TouchableOpacity>
-                    <Icon name="chatbubble-outline" size={24} color="#000" style={styles.icon} />
-                </TouchableOpacity>
+        <View style={styles.postContainer}>
+            <View style={styles.postHeader}>
+                <Image source={{ uri: item.item_photo }} style={styles.postImage} />
+                <View style={styles.postInfo}>
+                    <Text style={styles.userName}>{`User ${item.user_id}`}</Text>
+                    <Text style={styles.date}>{item.date}</Text>
+                </View>
             </View>
-            <Text style={styles.itemName}>{item.item_name}</Text>
-            <Text style={styles.itemPrice}>₱{item.item_price}</Text>
+            <View style={styles.postDetails}>
+                <Text style={styles.price}>₱{item.item_price}</Text>
+                <Text style={styles.title}>{item.item_name}</Text>
+                <View style={styles.iconsContainer}>
+                    <TouchableOpacity
+                        style={styles.iconButton}
+                        onPress={() => handleLike(item.item_id)}
+                    >
+                        <Icon
+                            name={item.liked ? 'heart' : 'heart-outline'}
+                            size={24}
+                            color={item.liked ? '#F9C2D0' : '#000'}
+                        />
+                        <Text style={styles.iconText}>{item.likes}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => {
+                            const user = findUserById(item.user_id);
+                            navigation.navigate('ChatPage', {
+                                receiver_id: item.user_id,
+                                user_id: user_id,
+                            });
+                        }}
+                    >
+                        <Icon name="chatbubble-outline" size={25} color="#000" />
+                    </TouchableOpacity>
+                </View>
+            </View>
         </View>
     );
 
     return (
         <View style={styles.container}>
-            {/* Header */}
             <View style={styles.header}>
-                <Image source={require('../assets/logo.png')} style={{ width: 50, height: 50 }} />
+                <Image source={require('../assets/logo.png')} style={styles.logo} />
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('LogIn')}>
                 <Text style={styles.logOutText}>Log Out</Text>
             </TouchableOpacity>
 
-            {/* Profile info */}
-            <View style={styles.profileInfoContainer}>
-                <Image source={require('../assets/profilepic.png')} style={styles.profileImage} />
-                <View style={styles.profileInfo}>
-                    <Text style={styles.userName}>{user.first_name} {user.last_name}</Text>
-                    <Text style={styles.university}>Polytechnic University of the Philippines</Text>
-                    <TouchableOpacity>
-                        <Text style={styles.editProfile} onPress={() => navigation.navigate('EditProfile', { user_id })}>
-                            Edit Profile
-                        </Text>
-                    </TouchableOpacity>
+            {user ? (
+                <View style={styles.profileInfoContainer}>
+                    <Image source={{ uri: user.profile_picture || 'https://via.placeholder.com/100' }} style={styles.profileImage} />
+                    <View style={styles.profileInfo}>
+                        <Text style={styles.userName}>{user.first_name || 'User'} {user.last_name || ''}</Text>
+                        <Text style={styles.university}>{user.email || 'No email provided'}</Text>
+                        <TouchableOpacity>
+                            <Text style={styles.editProfile} onPress={() => navigation.navigate('EditProfile', { user_id, user })}>
+                                Edit Profile
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
+            ) : (
+                <Text>Loading profile...</Text>
+            )}
 
-            {/* line between the profile info and post containers */}
             <View style={styles.line} />
 
-            {/* Items Section */}
             <FlatList
-                data={userItems} // filtered items
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item.item_id.toString()}
-                    numColumns={2}
-                    columnWrapperStyle={styles.feedRow}
-                    contentContainerStyle={styles.feedContainer}
+                data={posts}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.item_id.toString()}
+                numColumns={2}
+                columnWrapperStyle={styles.feedRow}
+                contentContainerStyle={styles.feedContainer}
             />
-            {/* Bottom Navigation */}
+
             <View style={styles.bottomNav}>
                 <TouchableOpacity onPress={() => navigation.navigate('Home', { user_id })}>
                     <Icon name="home-outline" size={25} color="#000" />
@@ -86,14 +129,14 @@ const Profile = ({ navigation, route }) => {
                     <Icon name="add-circle-outline" size={25} color="#000" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id })}>
-                <Icon name="mail-outline" size={25} color="#000" />
+                    <Icon name="mail-outline" size={25} color="#000" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Profile', { user_id })}>
                     <Icon name="person-outline" size={25} color="#000" />
                 </TouchableOpacity>
             </View>
         </View>
- );
+    );
 };
 
 const styles = StyleSheet.create({
@@ -106,20 +149,24 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#F9C2D0',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+    },
+    logo: {
+        width: 50,
+        height: 50,
     },
     profileInfoContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 50,
+        marginTop: 20,
         paddingHorizontal: 20,
-        position: 'relative',
     },
     profileImage: {
         width: 100,
         height: 100,
         borderRadius: 50,
-        marginRight: 40,
-        left: 25,
+        marginRight: 20,
     },
     profileInfo: {
         flex: 1,
@@ -128,18 +175,19 @@ const styles = StyleSheet.create({
     logOutText: {
         position: 'absolute',
         top: 20,
-        right: 30,
+        right: 20,
         fontSize: 14,
         color: '#000',
         textDecorationLine: 'underline',
         fontWeight: 'bold',
     },
     userName: {
-        fontSize: 17,
+        fontSize: 18,
         fontWeight: 'bold',
+        marginBottom: 5,
     },
     university: {
-        fontSize: 13,
+        fontSize: 14,
         color: '#555',
         marginBottom: 10,
     },
@@ -163,8 +211,8 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
         justifyContent: 'space-between',
     },
-    itemContainer: {
-        width: '48%', 
+    postContainer: {
+        width: '48%',
         marginBottom: 10,
         borderRadius: 20,
         backgroundColor: '#fff',
@@ -172,32 +220,52 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         padding: 10,
         position: 'relative',
+        overflow: 'hidden',
     },
-    itemImage: {
+    postHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    postImage: {
         width: '100%',
         height: 150,
         borderRadius: 10,
+    },
+    postInfo: {
+        marginLeft: 10,
+    },
+    postDetails: {
+        marginTop: 10,
+        padding: 5,
+    },
+    price: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#000',
+    },
+    title: {
+        fontSize: 12,
+        color: '#555',
     },
     iconsContainer: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
         marginTop: 5,
     },
-    itemName: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        marginTop: 5,
+    iconButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 10,
     },
-    itemPrice: {
-        fontSize: 12,
-        color: '#555',
+    iconText: {
+        marginLeft: 5,
     },
     bottomNav: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        padding: 20,
+        padding: 15,
         backgroundColor: '#FFDC9A',
-        borderRadius: 110,
+        borderRadius: 30,
         marginHorizontal: 30,
         marginBottom: 30,
         shadowColor: '#000',

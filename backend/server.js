@@ -1,14 +1,13 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 
-// Import the registerUser and loginUser functions
-const { registerUser, loginUser } = require('./controllers/userController');
+// Import the registerUser, loginUser, and getUsers functions
+const { registerUser, loginUser, getUsers } = require('./controllers/userController');
 
 // Import item-related functions
-const { getItems, getUserItems, addItem, likeItemController, unlikeItemController } = require('./controllers/itemController');
+const itemRoutes = require('./routes/itemRoutes'); // Import item routes
 
 const app = express();
 
@@ -19,12 +18,9 @@ app.use(cors()); // Enable CORS for all origins
 // Login and register routes
 app.post('/login', (req, res) => loginUser(req, res));
 app.post('/register', (req, res) => registerUser(req, res));
+app.get('/users/:user_id', (req, res) => getUsers(req, res)); // Changed this to use user_id as a param
 
-// Item routes
-app.get('/items', (req, res) => getItems(req, res)); // Get all items
-app.get('/items/:user_id', (req, res) => getUserItems(req, res)); // Get user's items
-app.post('/items/:item_id/like', (req, res) => likeItemController(req, res)); // Like an item
-app.post('/items/:item_id/unlike', (req, res) => unlikeItemController(req, res)); // Unlike an item
+app.use('/api', itemRoutes); // Add item-related routes with the '/api' prefix
 
 // Set up the server to listen on a specified port
 const PORT = process.env.PORT || 3001;

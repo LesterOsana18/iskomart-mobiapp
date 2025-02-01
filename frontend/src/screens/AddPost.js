@@ -1,10 +1,9 @@
-// ADD POST SCREEN
-
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, Image, TouchableOpacity, ScrollView, Modal, FlatList, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
-import { data, addItem } from '../data/Data'; // Import the data object from Data.js
+import axios from 'axios';
+import { URL } from '../config';
 
 const AddPost = ({ navigation, route }) => {
   const { user_id } = route.params;
@@ -46,27 +45,32 @@ const AddPost = ({ navigation, route }) => {
     }
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!price || !description || !category) {
-      Alert.alert('Validation Error', 'Please fill in all required fields: Price, Description, and Category.');
+      Alert.alert('Error', 'All fields are required!');
       return;
     }
   
-    // Creating and passing the required parameters directly to addItem
-    addItem(
-      imageUris[0],   // First image URI
-      description,    // Using description as the item name
-      price,          // Item price
-      description,    // Item description
-      category,       // Item category
-      user_id         // Passing the user_id here
-    );
+    try {
+      const response = await axios.post(`${URL}/api/items`, {
+        item_photo: imageUris[0] || null,
+        item_name: description,
+        item_price: price,
+        item_description: description,
+        item_category: category,
+        user_id: user_id,
+      });
   
-    // Log the new item to confirm it's added (this will be logged inside addItem)
-    console.log("Item published successfully!");
-  
-    // Navigate to the Home screen
-    navigation.navigate('Home', { user_id });
+      if (response.status === 201) {
+        Alert.alert('Success', 'Item published successfully!');
+        navigation.navigate('Home', { user_id });
+      } else {
+        Alert.alert('Error', response.data.message || 'Something went wrong while publishing the item');
+      }
+    } catch (err) {
+      console.error('Error publishing item:', err.response ? err.response.data : err);
+      Alert.alert('Error', err.response?.data?.message || 'Something went wrong while publishing the item');
+    }
   };
 
   return (
@@ -93,7 +97,6 @@ const AddPost = ({ navigation, route }) => {
           <Text style={styles.addImageText}>Add Photo</Text>
         </View>
 
-        {/* Display the image preview */}
         {imageUris.length > 0 && (
           <ScrollView horizontal style={styles.imagePreviewContainer}>
             {imageUris.map((uri, index) => (
@@ -162,7 +165,7 @@ const AddPost = ({ navigation, route }) => {
           <Icon name="add-circle-outline" size={25} color="#000" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Messaging', { user_id })}>
-        <Icon name="mail-outline" size={25} color="#000" />
+          <Icon name="mail-outline" size={25} color="#000" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Profile', { user_id })}>
           <Icon name="person-outline" size={25} color="#000" />

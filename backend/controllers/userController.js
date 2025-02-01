@@ -64,4 +64,28 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser };
+// Get user info function
+const getUsers = async (req, res) => {
+  const { user_id } = req.params; // Expect user_id as a parameter in the URL
+
+  try {
+    // Query the database to get the user's info by user_id
+    const [result] = await db.query('SELECT first_name, last_name, username, email FROM users WHERE user_id = ?', [user_id]);
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Return user info
+    res.status(200).json({
+      message: 'User info retrieved successfully',
+      userInfo: result[0],
+    });
+  } catch (err) {
+    console.error('Error retrieving user info:', err);
+    res.status(500).json({ message: 'Error retrieving user info', error: err.message });
+  }
+};
+
+module.exports = { registerUser, loginUser, getUsers };
+

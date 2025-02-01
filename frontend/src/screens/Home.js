@@ -1,28 +1,58 @@
-import React, { useState, useEffect, use } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { data, toggleLike, findUserById } from '../data/Data'; // Import the data object and toggleLike function
+import axios from 'axios';
+import { URL } from '../config'; // Import URL from config
 
 const Home = ({ route, navigation }) => {
   const { user_id } = route.params || {}; // Get the userId passed from LogIn
 
-  useEffect(() => {
-    console.log("Home Screen route.params:", route.params); // Log the entire route.params
-    console.log("Home Screen user_id:", user_id);
-  }, [route.params]);
-
-  const [posts, setPosts] = useState(data.items);
+  const [posts, setPosts] = useState([]);
   const categories = ["Foods", "School Supplies", "Gadgets", "Others"];
 
+  // Fetch posts on component mount
   useEffect(() => {
-    if (route.params?.newPost) {
-      setPosts((prevPosts) => [route.params.newPost, ...prevPosts]);
-    }
-  }, [route.params?.newPost]);
+    const fetchPosts = async () => {
+      try {
+        const response = await axios.get(`${URL}/api/get_items`); // Fetch all items
+        setPosts(response.data); // Assume response contains all items
+      } catch (err) {
+        console.error('Error fetching posts:', err);
+        if (err.response) {
+          console.error('Response error:', err.response);
+          Alert.alert('Error', 'Failed to fetch posts. Server responded with error.');
+        } else if (err.request) {
+          console.error('Request error:', err.request);
+          Alert.alert('Error', 'Failed to fetch posts. No response from the server.');
+        } else {
+          console.error('General error:', err.message);
+          Alert.alert('Error', 'An unknown error occurred while fetching posts.');
+        }
+      }
+    };
+  
+    fetchPosts();
+  }, []); // The effect will run once when the component is mounted
 
-  const handleLike = (item_id) => {
-    toggleLike(item_id);
-    setPosts([...data.items]);
+  // Handle like functionality
+  const handleLike = async (item_id) => {
+    try {
+      const response = await axios.post(`${URL}/api/likePost`, { item_id, user_id });
+      if (response.status === 200) {
+        setPosts((prevPosts) =>
+          prevPosts.map(post =>
+            post.item_id === item_id
+              ? { ...post, liked: !post.liked, likes: post.liked ? post.likes - 1 : post.likes + 1 }
+              : post
+          )
+        );
+      } else {
+        Alert.alert('Error', 'Failed to like the post');
+      }
+    } catch (err) {
+      console.error('Error liking post:', err);
+      Alert.alert('Error', 'Something went wrong while liking the post');
+    }
   };
 
   const renderItem = ({ item }) => (
@@ -116,7 +146,7 @@ const Home = ({ route, navigation }) => {
       </View>
 
       <FlatList
-        data={data.items}
+        data={posts} // Fetch the posts from API
         renderItem={renderItem}
         keyExtractor={(item) => item.item_id.toString()}
         style={styles.postsList}
@@ -142,7 +172,6 @@ const Home = ({ route, navigation }) => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

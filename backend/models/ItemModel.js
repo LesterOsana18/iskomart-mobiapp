@@ -13,7 +13,7 @@ const getItemsByUser = async (user_id) => {
 };
 
 // Add a new item (with an image)
-const createItem = async (user_id, item_price, item_photo, item_category) => {
+const addItem = async (user_id, item_price, item_photo, item_category) => {
     const sql = "INSERT INTO items (user_id, date, item_price, item_photo, item_category, likes) VALUES (?, NOW(), ?, ?, ?, 0)";
     const [result] = await pool.execute(sql, [user_id, item_price, item_photo, item_category]);
     return result.insertId; // Return the new item ID
@@ -29,4 +29,4 @@ const unlikeItem = async (item_id) => {
     await pool.execute("UPDATE items SET likes = likes - 1 WHERE item_id = ?", [item_id]);
 };
 
-module.exports = { getAllItems, getItemsByUser, createItem, likeItem, unlikeItem };
+module.exports = { getAllItems, getItemsByUser, addItem, likeItem, unlikeItem };
