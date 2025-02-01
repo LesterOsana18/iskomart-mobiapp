@@ -22,7 +22,7 @@ const ChatPage = ({ navigation, route }) => {
         const response = await axios.get(`${URL}/text/messages/${user_id}`, {
           params: { receiver_id },
         });
-  
+        
         // Filter messages where sender and receiver match the user and receiver in either direction
         const filteredMessages = response.data.filter(
           (message) =>
@@ -36,9 +36,17 @@ const ChatPage = ({ navigation, route }) => {
         setMessages(sortedMessages);
         setLoading(false);
       } catch (error) {
+        // To be modified for displaying a blank chat page with the linked user_id of the item clicked
         console.error('Error fetching messages:', error);
-        setError('Failed to fetch messages. Please try again.');
-        setLoading(false);
+            if (error.response?.status === 404 || error.message === 'Network Error') {
+                // If fetch fails but we don't want to show an error, just set an empty chat page
+                setMessages([]);
+                setLoading(false);
+            } else {
+                // In case of other errors, set the error state
+                setError('Failed to fetch messages. Please try again.');
+                setLoading(false);
+            }
       }
     };
   
@@ -78,12 +86,7 @@ const ChatPage = ({ navigation, route }) => {
   
 
   // Render a single message
-  const renderMessage = ({ item }) => {
-    // Parse the time field as a Date object
-    const messageTime = new Date(item.time).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const renderMessage = ({ item }) => {    
 
     return (
       <View
@@ -93,7 +96,7 @@ const ChatPage = ({ navigation, route }) => {
         ]}
       >
         <Text style={styles.messageText}>{item.text}</Text>
-        <Text style={styles.messageTime}>{messageTime}</Text>
+        <Text style={styles.messageTime}>{item.time}</Text>
       </View>
     );
   };
