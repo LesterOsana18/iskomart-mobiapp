@@ -96,7 +96,7 @@ const Profile = ({ route, navigation }) => {
                         <Text style={styles.userName}>{user.first_name || 'User'} {user.last_name || ''}</Text>
                         <Text style={styles.university}>{user.email || 'No email provided'}</Text>
                         <TouchableOpacity>
-                            <Text style={styles.editProfile} onPress={() => navigation.navigate('EditProfile', { user_id, user })}>
+                            <Text style={styles.editProfile} onPress={() => navigation.navigate('EditProfile', { user_id })}>
                                 Edit Profile
                             </Text>
                         </TouchableOpacity>

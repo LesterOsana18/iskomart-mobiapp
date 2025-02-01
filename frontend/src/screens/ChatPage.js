@@ -6,8 +6,6 @@ import { URL } from '../config';
 
 const ChatPage = ({ navigation, route }) => {
   const { user_id, receiver_id, userName, avatar } = route.params || {}; // Fallback in case route.params is undefined
-  console.log('ChatPage loaded with:', { user_id, receiver_id, userName, avatar });
-
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -52,8 +50,6 @@ const ChatPage = ({ navigation, route }) => {
   
     fetchMessages();
   }, [user_id, receiver_id]); // Re-fetch if user_id or receiver_id changes
-  
-  
   
   // Send a message
   const sendMessage = async () => {
