@@ -56,7 +56,6 @@ const Profile = ({ route, navigation }) => {
                 <View style={styles.iconsContainer}>
                     <TouchableOpacity
                         style={styles.iconButton}
-                        onPress={() => handleLike(item.item_id)}
                     >
                         <Icon
                             name={item.liked ? 'heart' : 'heart-outline'}
@@ -74,7 +73,7 @@ const Profile = ({ route, navigation }) => {
                             });
                         }}
                     >
-                        <Icon name="chatbubble-outline" size={25} color="#000" />
+                        <Icon name="chatbubble-outline" size={25} color="#000" marginBottom="3"/>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -92,7 +91,7 @@ const Profile = ({ route, navigation }) => {
 
             {user ? (
                 <View style={styles.profileInfoContainer}>
-                    <Image source={{ uri: user.profile_picture || 'https://via.placeholder.com/100' }} style={styles.profileImage} />
+                    <Image source={require('../assets/profilepic.png')} style={styles.profileImage} />
                     <View style={styles.profileInfo}>
                         <Text style={styles.userName}>{user.first_name || 'User'} {user.last_name || ''}</Text>
                         <Text style={styles.university}>{user.email || 'No email provided'}</Text>
@@ -249,8 +248,11 @@ const styles = StyleSheet.create({
     },
     iconsContainer: {
         flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginTop: 5,
+        justifyContent: 'flex-end',  
+        alignItems: 'center',  
+        position: 'absolute',  
+        bottom: 1,  
+        right: 1,
     },
     iconButton: {
         flexDirection: 'row',
