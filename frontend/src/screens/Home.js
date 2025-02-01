@@ -6,6 +6,8 @@ import { URL } from '../config';
 
 const Home = ({ route, navigation }) => {
   const { user_id } = route.params || {}; // Get the userId passed from LogIn
+  console.log('user_id:', user_id); // Verify the value
+  // Get the userId passed from LogIn
 
   const [posts, setPosts] = useState([]);
   const categories = ["Foods", "School Supplies", "Gadgets", "Others"];
@@ -30,14 +32,20 @@ const Home = ({ route, navigation }) => {
         }
       }
     };
-  
     fetchPosts();
   }, []); // The effect will run once when the component is mounted
 
   // Handle like functionality
-  const handleLike = async (item_id) => {
+  const handleLike = async (item_id, liked) => {
+    if (!user_id) {
+      Alert.alert('Error', 'Invalid user ID');
+      return; // Prevent further execution if user_id is invalid
+    }
+  
     try {
-      const response = await axios.post(`${URL}/api/likePost`, { item_id, user_id });
+      const endpoint = liked ? `${URL}/api/items/${item_id}/unlike` : `${URL}/api/items/${item_id}/like`;
+      const response = await axios.post(endpoint, { user_id });
+  
       if (response.status === 200) {
         setPosts((prevPosts) =>
           prevPosts.map(post =>
@@ -47,53 +55,74 @@ const Home = ({ route, navigation }) => {
           )
         );
       } else {
-        Alert.alert('Error', 'Failed to like the post');
+        Alert.alert('Error', 'Failed to update like status');
       }
     } catch (err) {
-      console.error('Error liking post:', err);
-      Alert.alert('Error', 'Something went wrong while liking the post');
+      console.error('Error updating like status:', err);
+      Alert.alert('Error', 'Something went wrong while updating like status');
     }
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.postContainer}>
-      <View style={styles.postHeader}>
-        <Image source={{ uri: item.item_photo }} style={styles.postImage} />
-        <View style={styles.postInfo}>
-          <Text style={styles.userName}>{`User ${item.user_id}`}</Text>
-          <Text style={styles.date}>{item.date}</Text>
-        </View>
-      </View>
-      <View style={styles.postDetails}>
-        <Text style={styles.price}>₱{item.item_price}</Text>
-        <Text style={styles.title}>{item.item_name}</Text>
-        <View style={styles.iconsContainer}>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => handleLike(item.item_id)}
-          >
-            <Icon
-              name={item.liked ? 'heart' : 'heart-outline'}
-              size={24}
-              color={item.liked ? '#F9C2D0' : '#000'}
-            />
-            <Text style={styles.iconText}>{item.likes}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              const user = findUserById(item.user_id);
-              navigation.navigate('ChatPage', {
-                receiver_id: item.user_id,
-                user_id: user_id,
-              });
-            }}
-          >
-            <Icon name="chatbubble-outline" size={25} color="#000" />
-          </TouchableOpacity>
-        </View>
+  
+
+  // Render a single post item
+const renderItem = ({ item }) => (
+  <View style={styles.postContainer}>
+    <View style={styles.postHeader}>
+      <Image source={{ uri: item.item_photo }} style={styles.postImage} />
+      <View style={styles.postInfo}>
+        <Text style={styles.userName}>{`User ${item.item_user_id}`}</Text>
+        <Text style={styles.date}>{item.date}</Text>
       </View>
     </View>
-  );
+    <View style={styles.postDetails}>
+      <Text style={styles.price}>₱{item.item_price}</Text>
+      <Text style={styles.title}>{item.item_name}</Text>
+      <View style={styles.iconsContainer}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => handleLike(item.item_id, item.liked)}
+        >
+          <Icon
+            name={item.liked ? 'heart' : 'heart-outline'}
+            size={24}
+            color={item.liked ? '#F9C2D0' : '#000'}
+          />
+          <Text style={styles.iconText}>{item.likes}</Text>
+        </TouchableOpacity>
+
+        {/* Message Button */}
+        <TouchableOpacity
+          onPress={() => {
+            if (!user_id || !item.item_user_id) {
+              Alert.alert('Error', 'Invalid user ID');
+              return;
+            }
+
+            // Debugging log to verify the ids being passed
+            console.log('Current user ID:', user_id);
+            console.log('Receiver ID:', item.item_user_id);
+
+            if (user_id === item.item_user_id) {
+              Alert.alert('Error', 'You cannot chat with yourself!');
+              return;
+            }
+
+            navigation.navigate('ChatPage', {
+              user_id: user_id, // Current user
+              receiver_id: item.item_user_id, // User who posted the item
+              userName: `${item.username}`, // Username for the chat header
+              avatar: item.avatar, // Avatar for the chat page
+            });
+          }}
+        >
+          <Icon name="chatbubble-outline" size={25} color="#000" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+);
+
 
   return (
     <View style={styles.container}>
@@ -172,6 +201,7 @@ const Home = ({ route, navigation }) => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

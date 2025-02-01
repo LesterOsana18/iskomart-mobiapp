@@ -5,21 +5,34 @@ import axios from 'axios';
 import { URL } from '../config';
 
 const ChatPage = ({ navigation, route }) => {
-  const { user_id, receiver_id, userName, avatar } = route.params;
+  const { user_id, receiver_id, userName, avatar } = route.params || {}; // Fallback in case route.params is undefined
+  console.log('ChatPage loaded with:', { user_id, receiver_id, userName, avatar });
+
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch messages from the server
+  // Fetch messages from the server whenever user_id or receiver_id changes
   useEffect(() => {
+    if (!user_id || !receiver_id) return; // Exit if necessary params are missing
+  
     const fetchMessages = async () => {
       try {
         const response = await axios.get(`${URL}/text/messages/${user_id}`, {
           params: { receiver_id },
         });
+  
+        // Filter messages where sender and receiver match the user and receiver in either direction
+        const filteredMessages = response.data.filter(
+          (message) =>
+            (message.sender_id === user_id && message.receiver_id === receiver_id) ||
+            (message.sender_id === receiver_id && message.receiver_id === user_id)
+        );
+  
         // Sort messages by time before setting them in state
-        const sortedMessages = response.data.sort((a, b) => new Date(a.time) - new Date(b.time));
+        const sortedMessages = filteredMessages.sort((a, b) => new Date(a.time) - new Date(b.time));
+  
         setMessages(sortedMessages);
         setLoading(false);
       } catch (error) {
@@ -28,10 +41,12 @@ const ChatPage = ({ navigation, route }) => {
         setLoading(false);
       }
     };
-
+  
     fetchMessages();
-  }, [user_id, receiver_id]);
-
+  }, [user_id, receiver_id]); // Re-fetch if user_id or receiver_id changes
+  
+  
+  
   // Send a message
   const sendMessage = async () => {
     if (inputText.trim()) {
@@ -116,7 +131,6 @@ const ChatPage = ({ navigation, route }) => {
         renderItem={renderMessage}
         keyExtractor={(item) => item.message_id.toString()}
         contentContainerStyle={styles.messagesList}
-      
       />
 
       <View style={styles.inputContainer}>

@@ -1,4 +1,4 @@
-const { getAllItems, getItemsByUser, addItem, likeItem, unlikeItem } = require('../models/ItemModel');
+const { getAllItems, getItemsByUser } = require('../models/ItemModel');
 const pool = require('../config/db'); 
 
 // Get all items
@@ -12,7 +12,6 @@ const getItems = async (req, res) => {
     }
 };
 
-
 // Get items by user ID
 const getUserItems = async (req, res) => {
     const { user_id } = req.params; // Getting user_id from the URL parameter
@@ -25,28 +24,31 @@ const getUserItems = async (req, res) => {
     }
 };
 
-
 // Like an item
-const likeItemController = async (req, res) => {
-    const { item_id } = req.params;
+const toggleLike = async (req, res) => {
+    const { item_id } = req.params; // Get the item ID from the URL parameter
     try {
-        await likeItem(item_id);
+        // Update the likes by incrementing or decrementing
+        await pool.execute('UPDATE items SET likes = likes + 1 WHERE item_id = ?', [item_id]);
+
         res.status(200).json({ message: "Item liked successfully" });
-    } catch (err) {
-        console.error("Error liking item:", err);
-        res.status(500).json({ message: "Error liking item" });
+    } catch (error) {
+        console.error("Error liking item:", error);
+        res.status(500).json({ message: "Error liking item", error: error.message });
     }
 };
 
 // Unlike an item
-const unlikeItemController = async (req, res) => {
-    const { item_id } = req.params;
+const unlikeItem = async (req, res) => {
+    const { item_id } = req.params; // Get the item ID from the URL parameter
     try {
-        await unlikeItem(item_id);
+        // Update the likes by decrementing
+        await pool.execute('UPDATE items SET likes = likes - 1 WHERE item_id = ?', [item_id]);
+
         res.status(200).json({ message: "Item unliked successfully" });
-    } catch (err) {
-        console.error("Error unliking item:", err);
-        res.status(500).json({ message: "Error unliking item" });
+    } catch (error) {
+        console.error("Error unliking item:", error);
+        res.status(500).json({ message: "Error unliking item", error: error.message });
     }
 };
 
@@ -73,4 +75,4 @@ const createItem = async (req, res) => {
   }
 };
 
-module.exports = { getItems, getUserItems, createItem, likeItemController, unlikeItemController };
+module.exports = { getItems, getUserItems, createItem, toggleLike, unlikeItem };

@@ -1,10 +1,14 @@
 const pool = require('../config/db');
 
-// Get all items
 const getAllItems = async () => {
-    const [rows] = await pool.execute("SELECT * FROM items ORDER BY date DESC");
+    const [rows] = await pool.execute(
+      "SELECT items.item_id, items.item_name, items.item_price, items.likes, items.item_photo, items.user_id AS item_user_id, users.username FROM items JOIN users ON items.user_id = users.user_id ORDER BY items.date DESC"
+    );
+    console.log('Fetched Items:', rows); // Log the fetched data
     return rows;
 };
+
+
 
 // Get items by user_id (for Profile screen)
 const getItemsByUser = async (user_id) => {
