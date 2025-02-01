@@ -85,7 +85,7 @@ const renderItem = ({ item }) => (
         >
           <Icon
             name={item.liked ? 'heart' : 'heart-outline'}
-            size={24}
+            size={25}
             color={item.liked ? '#F9C2D0' : '#000'}
           />
           <Text style={styles.iconText}>{item.likes}</Text>
@@ -116,7 +116,7 @@ const renderItem = ({ item }) => (
             });
           }}
         >
-          <Icon name="chatbubble-outline" size={25} color="#000" />
+          <Icon name="chatbubble-outline" size={24} color="#000" marginBottom="3" marginLeft="10"/>
         </TouchableOpacity>
       </View>
     </View>
@@ -308,9 +308,11 @@ const styles = StyleSheet.create({
   },
   iconsContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 10,
-    flexWrap: 'wrap',
+    justifyContent: 'flex-end',  
+    alignItems: 'center',  
+    position: 'absolute',  
+    bottom: 1,  
+    right: 1,   
   },
   iconButton: {
     flexDirection: 'row',
